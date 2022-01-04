@@ -11,8 +11,10 @@ import {
 import { isDocumentNode } from "@apollo/client/utilities";
 import { useState } from "react";
 import { ResponsiveImageType } from "react-datocms";
+import handleError from "../utils/handleError";
 
 //#region Client
+
 const API_TOKEN = process.env.REACT_APP_DATOCMS;
 const uri = "https://graphql.datocms.com";
 const client = new ApolloClient({
@@ -23,6 +25,7 @@ const client = new ApolloClient({
 //#endregion
 
 // #region Hooks
+
 const useDato = <T = any, TVariables = OperationVariables>(
   optionsOrQuery: QueryOptions<TVariables, any> | ReturnType<typeof gql>
 ): { data: T | null; loading: boolean } => {
@@ -31,11 +34,14 @@ const useDato = <T = any, TVariables = OperationVariables>(
   const options: QueryOptions<TVariables, any> = isDocumentNode(optionsOrQuery)
     ? { query: optionsOrQuery }
     : optionsOrQuery;
-  client.query<T, TVariables>(options).then(({ data: response }) => {
-    setLoading(false);
-    setData(response);
-  });
-  // TODO handle error
+
+  client
+    .query<T, TVariables>(options)
+    .then(({ data: response }) => {
+      setData(response);
+    })
+    .catch((e) => handleError(e, "Failed to get data"))
+    .finally(()=>setLoading(false));
   return { data, loading };
 };
 
@@ -43,6 +49,7 @@ export default useDato;
 //#endregion
 
 // #region queries
+
 export const responsiveImage = `
 responsiveImage{
   srcSet
@@ -85,6 +92,7 @@ query Cars{
 // #endregion
 
 //#region types
+
 export interface DatoQuery<T = string> {
   __typename: string;
 }
