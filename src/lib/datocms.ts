@@ -92,7 +92,7 @@ query Cars{
 //#region types
 
 export interface DatoQuery<T = string> {
-  __typename: string;
+  __typename: T;
 }
 export type DatoImg = { responsiveImage: ResponsiveImageType };
 export interface Gearbox extends DatoQuery<"GearboxRecord"> {
