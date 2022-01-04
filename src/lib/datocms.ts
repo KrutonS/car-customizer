@@ -2,11 +2,9 @@
 import {
   ApolloClient,
   InMemoryCache,
-  ApolloProvider,
   gql,
   OperationVariables,
   QueryOptions,
-  TypedDocumentNode,
 } from "@apollo/client";
 import { isDocumentNode } from "@apollo/client/utilities";
 import { useState } from "react";
@@ -28,9 +26,9 @@ const client = new ApolloClient({
 
 const useDato = <T = any, TVariables = OperationVariables>(
   optionsOrQuery: QueryOptions<TVariables, any> | ReturnType<typeof gql>
-): { data: T | null; loading: boolean } => {
+): { data: T | null; isLoading: boolean } => {
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const options: QueryOptions<TVariables, any> = isDocumentNode(optionsOrQuery)
     ? { query: optionsOrQuery }
     : optionsOrQuery;
@@ -42,7 +40,7 @@ const useDato = <T = any, TVariables = OperationVariables>(
     })
     .catch((e) => handleError(e, "Failed to get data"))
     .finally(()=>setLoading(false));
-  return { data, loading };
+  return { data, isLoading };
 };
 
 export default useDato;
