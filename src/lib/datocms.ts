@@ -67,21 +67,25 @@ responsiveImage{
 export const primaryQuery = gql`
 query Cars{
 	allCarModels {
+		id
     name
     price
     image {
 				${responsiveImage}
     }
     validEngines {
+			id
       price
       name
       validGearboxes {
+				id
         price
         name
       }
     }
   }
 	allColors {
+		id
     color {
       hex
     }
@@ -96,21 +100,25 @@ export interface DatoQuery<T = string> {
 }
 export type DatoImg = { responsiveImage: ResponsiveImageType };
 export interface Gearbox extends DatoQuery<"GearboxRecord"> {
+	id:string;
   name: string;
   price: number;
 }
 export interface Engine extends DatoQuery<"EngineRecord"> {
+	id:string;
   name: string;
   price: number;
   validGearBoxes: Gearbox[];
 }
 export interface Model extends DatoQuery<"CarModelRecord"> {
+	id:string;
   name: string;
   price: number;
   validEngines: Engine[];
   image?: DatoImg;
 }
 export interface Color extends DatoQuery<"ColorRecord"> {
+	id:string;
   color: { hex: string };
 }
 export interface CarsQuery {
