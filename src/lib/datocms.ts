@@ -93,6 +93,7 @@ export const primaryQuery = gql`
     }
     allColors {
 			id
+			name
       color {
         hex
       }
@@ -120,12 +121,13 @@ export interface Model extends DatoQuery, CommonProps<"validEngines"> {
 }
 export interface Color extends DatoQuery {
   id: string;
+  name: string;
   color: { hex: string };
 }
 export interface PartsQuery {
   allCarModels: Model[];
-	allGearboxes: Gearbox[];
-	allEngines: Engine[];
+  allGearboxes: Gearbox[];
+  allEngines: Engine[];
   allColors: Color[];
 }
 
@@ -136,6 +138,6 @@ type PartExtends<P extends keyof PartsQuery, T> = P extends never
   : never;
 
 export type PartsWithPrice<P extends keyof PartsQuery = keyof PartsQuery> =
-  NonNullable<PartExtends<P,{price:number}[]>>;
+  NonNullable<PartExtends<P, { price: number }[]>>;
 
 // #endregion

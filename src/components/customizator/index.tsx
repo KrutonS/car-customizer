@@ -7,7 +7,6 @@ import {
   setModel,
 } from "../../store/features/carSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import Button from "../button";
 import PartButton from "./partButton";
 
 const Customizator: FC = () => {
@@ -82,14 +81,13 @@ const Customizator: FC = () => {
         );
       })}
       <h3>Colors</h3>
-      {allColors.map(({ id, color: { hex } }, index) => (
-        <Button
-          key={id}
-          onClick={() => dispatch(setColor(index))}
-          disabled={index === color}
-        >
-          {hex}
-        </Button>
+      {allColors.map((c, index) => (
+        <PartButton
+          part={c}
+          key={c.id}
+					isActive={index === color}
+          onClick={() => btnOnClick(index, setColor, color)}
+        />
       ))}
     </div>
   );
