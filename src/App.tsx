@@ -5,6 +5,7 @@ import Customizator from "./components/customizator";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { setParts } from "./store/features/carSlice";
 import { useEffect } from "react";
+import './app.scss';
 
 function App() {
   const { data } = useDato<PartsQuery>(primaryQuery);

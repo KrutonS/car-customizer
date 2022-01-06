@@ -34,7 +34,7 @@ const initialState: State = {
 type PickProp<P extends keyof State> = Required<State>[P];
 type StatePayload<P extends keyof State> = PayloadAction<PickProp<P>>;
 
-type NumberPayload = PayloadAction<number>;
+type UndefNumPayl = PayloadAction<number | undefined>;
 
 //#endregion
 
@@ -71,7 +71,81 @@ const mapParts = <T extends Model | Engine | Gearbox>(
   });
   return mappedArr;
 };
-
+const gearByEngine = (
+  allGearboxes: Gearbox[],
+  mappedEngines: (Engine | null)[],
+  engine: number
+) =>
+  allGearboxes.map((g) => {
+    let isSelEnginValid = true;
+    if (engine !== undefined) {
+      isSelEnginValid = isPartValid(
+        (mappedEngines[engine] as Engine).validGearboxes,
+        g
+      );
+    }
+    const isValid =
+      isSelEnginValid &&
+      mappedEngines.some((e) => {
+        if (e) {
+          const { validGearboxes } = e;
+          return isPartValid(validGearboxes, g);
+        }
+        return false;
+      });
+    return isValid ? g : null;
+  });
+const modelsByEngine = (allCarModels: Model[], engine: Engine) =>
+  allCarModels.map((m) => {
+    if (m) {
+      const { validEngines } = m;
+      const isValid = isPartValid(validEngines, engine);
+      if (isValid) return m;
+    }
+    return null;
+  });
+// const modelsByEnginess = (
+//   allCarModels: Model[],
+//   mappedEngines: (Engine | null)[],
+//   engine: number | undefined
+// ) =>
+//   allCarModels.map((m) => {
+//     const { validEngines } = m;
+//     let isValidEngine = true;
+//     // if (engine) {
+//     if (engine !== undefined) {
+//       isValidEngine = m.validEngines.some(
+//         ({ id }) => id === (mappedEngines[engine] as Engine).id
+//       );
+//     }
+//     const isValid =
+//       isValidEngine &&
+//       mappedEngines.some((e) => {
+//         if (e) return isPartValid(validEngines, e);
+//         return false;
+//       });
+//     return isValid ? m : null;
+//   });
+const enginesByModelGearbox = (
+  allEngines: Engine[],
+  allCarModels: Model[],
+  model: number | undefined,
+  gearbox: Gearbox
+) =>
+  allEngines.map((e) => {
+    if (e) {
+      const { validGearboxes } = e;
+      let isModelValid = true;
+      if (model !== undefined) {
+        const modelPart = allCarModels[model];
+        const { validEngines } = modelPart;
+        isModelValid = isPartValid(validEngines, e);
+      }
+      const isValid = isPartValid(validGearboxes, gearbox) && isModelValid;
+      if (isValid) return e;
+    }
+    return null;
+  });
 // #endregion
 
 const carSlice = createSlice({
@@ -90,132 +164,89 @@ const carSlice = createSlice({
         mappedGearboxes: allGearboxes,
       };
     },
-    setModel(state, { payload }: NumberPayload) {
+    setModel(state, { payload }: UndefNumPayl) {
       const { engine, gearbox, parts } = state;
       const { allEngines, allGearboxes } = parts;
-      let { validEngines } = parts.allCarModels[payload];
+      // let { mappedEngines, mappedGearboxes } = state;
+      let mappedEngines: (Engine | null)[] = allEngines;
+      let mappedGearboxes: (Gearbox | null)[] = allGearboxes;
+      console.log(payload);
+      state.model = payload;
 
-      if (gearbox !== undefined) {
-        validEngines = validEngines.filter(({ id }) => {
-          const e = findById(allEngines, id);
-          if (e) return isPartValid(e.validGearboxes, allGearboxes[gearbox]);
-          return false;
-        });
-      }
+      if (payload !== undefined) {
+        let { validEngines } = parts.allCarModels[payload];
 
-      const mappedEngines = mapParts(allEngines, validEngines);
-      const mappedGearboxes = allGearboxes.map((g) => {
-        let isSelEnginValid = true;
-        if (engine!==undefined){
-          isSelEnginValid = isPartValid(allEngines[engine].validGearboxes, g);
-				}
-        const isValid =
-          isSelEnginValid &&
-          mappedEngines.some((e) => {
-            if (e) {
-              const { validGearboxes } = e;
-              return isPartValid(validGearboxes, g);
-            }
+        // narrow validEngines
+        if (gearbox !== undefined) {
+          validEngines = validEngines.filter(({ id }) => {
+            const e = findById(allEngines, id);
+            if (e) return isPartValid(e.validGearboxes, allGearboxes[gearbox]);
             return false;
           });
-        return isValid ? g : null;
-      });
+        }
 
+        mappedEngines = mapParts(allEngines, validEngines);
+        if (engine !== undefined)
+          mappedGearboxes = gearByEngine(allGearboxes, mappedEngines, engine);
+
+        // clearIfInvalid(state, engine, mappedEngines, "engine");
+        // clearIfInvalid(state, gearbox, mappedGearboxes, "gearbox");
+      }
       state.mappedEngines = mappedEngines;
       state.mappedGearboxes = mappedGearboxes;
-
-      const engineIsValid = engine !== undefined && mappedEngines[engine];
-      const gearboxIsValid = gearbox !== undefined && mappedGearboxes[gearbox];
-
-      state.model = payload;
-      if (!engineIsValid) state.engine = undefined;
-      if (!gearboxIsValid) state.gearbox = undefined;
       state.price = updatePrice(state);
       return state;
     },
-    setEngine(state, { payload }: NumberPayload) {
-      const { gearbox, model, parts } = state;
+    setEngine(state, { payload }: UndefNumPayl) {
+      const { parts } = state;
       const { allCarModels, allEngines, allGearboxes } = parts;
-      const { validGearboxes } = allEngines[payload];
-
-      const mappedGearboxes = allGearboxes.map((e) =>
-        isPartValid(validGearboxes, e) ? e : null
-      );
-      const mappedModels = allCarModels.map((m) => {
-        if (m) {
-          const { validEngines } = m;
-          const isValid = isPartValid(validEngines, allEngines[payload]);
-          if (isValid) return m;
-        }
-        return null;
-      });
-      state.mappedGearboxes = mappedGearboxes;
-      state.mappedModels = mappedModels;
-
-      const modelIsValid = model !== undefined && mappedModels[model];
-
-      const gearboxIsValid = gearbox !== undefined && mappedGearboxes[gearbox];
-
+      let mappedModels: (Model | null)[] = allCarModels;
+      let mappedGearboxes: (Gearbox | null)[] = allGearboxes;
       state.engine = payload;
-      if (!modelIsValid) state.model = undefined;
-      if (!gearboxIsValid) state.gearbox = undefined;
+      console.log(payload);
+      if (payload !== undefined) {
+        const { validGearboxes } = allEngines[payload];
 
+        mappedGearboxes = mapParts(allGearboxes, validGearboxes);
+        mappedModels = modelsByEngine(allCarModels, allEngines[payload]);
+
+        // clearIfInvalid(state, model, mappedModels, "model");
+        // clearIfInvalid(state, gearbox, mappedGearboxes, "gearbox");
+      }
+      state.mappedGearboxes = mappedGearboxes; //modelsByEngine()
+      state.mappedModels = mappedModels;
       state.price = updatePrice(state);
       return state;
     },
-    setGearbox(state, { payload }: NumberPayload) {
+    setGearbox(state, { payload }: UndefNumPayl) {
       const { engine, model, parts } = state;
       const { allCarModels, allEngines, allGearboxes } = parts;
+      let mappedEngines: (Engine | null)[] = allEngines;
+      let mappedModels: (Model | null)[] = allCarModels;
 
-      const mappedEngines = allEngines.map((e) => {
-        if (e) {
-          const { validGearboxes } = e;
-          let isModelValid = true;
-          if (model !== undefined) {
-            const modelPart = allCarModels[model];
-            const { validEngines } = modelPart;
-            isModelValid = isPartValid(validEngines, e);
-          }
-          const isValid =
-            isPartValid(validGearboxes, allGearboxes[payload]) && isModelValid;
-          if (isValid) return e;
-        }
-        return null;
-      });
-
-      const mappedModels = allCarModels.map((m) => {
-        const { validEngines } = m;
-        let isValidEngine = true;
-        if (engine) {
-          isValidEngine = m.validEngines.some(
-            ({ id }) => id === allEngines[engine].id
-          );
-        }
-        const isValid =
-          isValidEngine &&
-          mappedEngines.some((e) => {
-            if (e) return isPartValid(validEngines, e);
-            return false;
-          });
-        return isValid ? m : null;
-      });
-
-      const engineIsValid = engine !== undefined && mappedEngines[engine];
-      const modelIsValid = model !== undefined && mappedModels[model];
+      state.gearbox = payload;
+      console.log(payload);
+      if (payload !== undefined) {
+        mappedEngines = enginesByModelGearbox(
+          allEngines,
+          allCarModels,
+          model,
+          allGearboxes[payload]
+        );
+      }
+      if (engine !== undefined) {
+        mappedModels = modelsByEngine(allCarModels, allEngines[engine]);
+        // clearIfInvalid(state, engine, mappedEngines, "engine");
+      }
+      // if (model !== undefined)
+      // clearIfInvalid(state, model, mappedModels, "model");
 
       state.mappedEngines = mappedEngines;
       state.mappedModels = mappedModels;
-      state.gearbox = payload;
-      if (!engineIsValid) {
-        state.engine = undefined;
-        alert("");
-      }
-      if (!modelIsValid) state.model = undefined;
-
       state.price = updatePrice(state);
       return state;
     },
-    setColor(state, { payload }: NumberPayload) {
+    setColor(state, { payload }: UndefNumPayl) {
       return { ...state, color: payload };
     },
   },
