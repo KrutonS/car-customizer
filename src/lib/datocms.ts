@@ -107,18 +107,22 @@ export const primaryQuery = gql`
 export interface DatoQuery<T = string> {
   __typename: T;
 }
-type CommonProps<ValidProp extends string | never = never> = {
+export type DatoImg = { responsiveImage: ResponsiveImageType };
+
+type CommonProps<T = string, ValidProp extends string | never = never> = {
   id: string;
   name: string;
   price: number;
-} & Record<ValidProp, ObjectWithId[]>;
+} & Record<ValidProp, ObjectWithId[]> &
+  DatoQuery<T>;
 
-export type DatoImg = { responsiveImage: ResponsiveImageType };
-export interface Gearbox extends DatoQuery, CommonProps {}
-export interface Engine extends DatoQuery, CommonProps<"validGearboxes"> {}
-export interface Model extends DatoQuery, CommonProps<"validEngines"> {
+export type ValidKeys = ["validEngines", "validGearboxes"];
+
+export interface Model extends CommonProps<"CarModelRecord", ValidKeys[0]> {
   image?: DatoImg;
 }
+export type Engine = CommonProps<"EngineRecord", ValidKeys[1]>;
+export type Gearbox = CommonProps<"GearboxRecord">;
 export interface Color extends DatoQuery {
   id: string;
   name: string;
@@ -130,6 +134,7 @@ export interface PartsQuery {
   allEngines: Engine[];
   allColors: Color[];
 }
+export type Part = Model | Engine | Gearbox;
 
 type PartExtends<P extends keyof PartsQuery, T> = P extends never
   ? never
@@ -140,4 +145,12 @@ type PartExtends<P extends keyof PartsQuery, T> = P extends never
 export type PartsWithPrice<P extends keyof PartsQuery = keyof PartsQuery> =
   NonNullable<PartExtends<P, { price: number }[]>>;
 
+type PartWithTypename<
+  T extends Part["__typename"],
+  P extends Part
+> = P extends never?never: T extends P['__typename']?P:never;
+
+export type GetPartWithTypename<T extends Part["__typename"]> = T extends never
+  ? never
+  : PartWithTypename<T, Part>;
 // #endregion
