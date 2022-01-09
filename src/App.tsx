@@ -1,11 +1,11 @@
 import useDato, { PartsQuery, primaryQuery } from "./lib/datocms";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Customizator from "./components/customizator";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { setParts } from "./store/features/carSlice";
 import { useEffect } from "react";
-import './app.scss';
+import "react-toastify/dist/ReactToastify.css";
+import './styles/global.scss';
 
 function App() {
   const { data } = useDato<PartsQuery>(primaryQuery);
