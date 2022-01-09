@@ -1,0 +1,93 @@
+@use "normalize";
+@use "var";
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+// @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100;600;700;900&family=Playfair+Display:wght@400;700;900&display=swap");
+// WEIGHTS 100 600 700 900
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito&family=Piazzolla:ital,wght@0,100;0,400;0,700;0,900;1,100;1,400;1,700;1,900&display=swap");
+// WEIGHTS 100 400 700 900
+body {
+  // font-family: "Montserrat", sans-serif;
+  // letter-spacing: 0.1em;
+  // line-height: 1.7em;
+  // font-family: 'Piazzolla', serif;
+  font-family: "Nunito", sans-serif;
+  line-height: 1.12em;
+  letter-spacing: 0.2em;
+  background-color: var.$primary6;
+  color: var.$white;
+  font-weight: 600;
+}
+@for $i from 1 to 6 {
+  h#{$i} {
+    font-family: "Piazzolla", serif;
+    color: scale-color(var.$complement1, $lightness: $i * -5%);
+    font-size: 6em / $i;
+    margin-bottom: 0.4em;
+  }
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+// main *+*{
+// 	margin-top: 1.5rem;
+// }
+.btn {
+  $bg: var.$complement4;
+  $stroke: var.$line-stroke;
+  $mask: var.$primary6;
+  $skew: var.$skew;
+  @include var.before-after;
+  &::after {
+    background: $mask;
+    transform: scaleX(1) skew($skew);
+  }
+  &::before {
+    background: $bg;
+  }
+  padding: 5px 20px;
+  border: $stroke solid $bg;
+  &:focus,
+  &:hover,
+  &--active {
+		&::after {
+			transform: scaleX(0) skew($skew);
+		}
+  }
+  &:disabled {
+    opacity: 0.2;
+  }
+}
+
+// h1{
+// 	color: var.$complement1;
+// }
+// h2{
+// 	color: var.$complement1;
+// }
+// h3{
+// 	color: var.$complement1;
+// }
+// h4{
+// 	color: var.$complement1;
+// }
+@media (prefers-reduced-motion: no-preference) {
+	.btn::after{
+		transition: transform 0.2s ease-in-out;
+	}
+}

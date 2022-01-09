@@ -1,0 +1,27 @@
+@use '../../styles/var';
+// .part-btn{
+// 	&--active{
+// 		background-color: orange;
+// 	}
+// }
+// .row *
+.customizator{
+	margin: var.$page-margin;
+}
+.row + .row{
+	margin-top: 2em;
+}
+.buttons{
+	display: flex;
+	flex-direction: column;
+	gap: .25em;
+	& > *{
+		flex-basis: 100%;
+	}
+}
+
+@media screen and (min-width: 500px) {
+	.buttons{
+		flex-direction: row;
+	}
+}
