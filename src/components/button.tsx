@@ -9,7 +9,7 @@ import {
 import {Link} from 'react-router-dom';
 import cn from 'classnames';
 
-export type ButtonTypes = ButtonHTMLAttributes<HTMLButtonElement>['type'];
+type ButtonTypes = ButtonHTMLAttributes<HTMLButtonElement>['type'];
 type ClickProps = {
 	onClick?: MouseEventHandler;
 	type?: ButtonTypes;

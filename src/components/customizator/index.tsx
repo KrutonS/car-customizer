@@ -20,9 +20,9 @@ const Customizator: FC = () => {
     gearbox,
     model,
     allColors,
-    allCarModels,
-    allEngines,
-    allGearboxes,
+    // allCarModels,
+    // allEngines,
+    // allGearboxes,
   } = useAppSelector(({ car }) => {
     const { parts, ...pass } = car;
     // const { allColors } = parts;
@@ -45,7 +45,7 @@ const Customizator: FC = () => {
       <div className={styles.row}>
 				<h3>Models</h3><div className={styles.buttons}>
 					
-					{allCarModels.map((m, index) => {
+					{mappedModels.map((m, index) => {
 						return (
 							<PartButton
 								//No reordering, so this is okay
@@ -53,7 +53,7 @@ const Customizator: FC = () => {
 								///
 								part={m}
 								isActive={index === model}
-								disabled={!mappedModels[index]}
+								disabled={mappedModels[index].disabled}
 								onClick={() => btnOnClick(index, setModel, model)}
 							/>
 						);
@@ -63,13 +63,13 @@ const Customizator: FC = () => {
       <div className={styles.row}>
 				<h3>Engines</h3>
 				<div className={styles.buttons}>
-					{allEngines.map((e, index) => {
+					{mappedEngines.map((e, index) => {
 						return (
 							<PartButton
 								key={index}
 								part={e}
 								isActive={index === engine}
-								disabled={!mappedEngines[index]}
+								disabled={mappedEngines[index].disabled}
 								onClick={() => btnOnClick(index, setEngine, engine)}
 							/>
 						);
@@ -79,13 +79,13 @@ const Customizator: FC = () => {
       <div className={styles.row}>
       <h3>Gearboxes</h3>
       <div className={styles.buttons}>
-				{allGearboxes.map((g, index) => {
+				{mappedGearboxes.map((g, index) => {
 					return (
 						<PartButton
 							key={index}
 							part={g}
 							isActive={index === gearbox}
-							disabled={!mappedGearboxes[index]}
+							disabled={mappedGearboxes[index].disabled}
 							onClick={() => btnOnClick(index, setGearbox, gearbox)}
 						/>
 					);

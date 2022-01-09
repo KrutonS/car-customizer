@@ -67,7 +67,7 @@ responsiveImage{
 
 export const primaryQuery = gql`
   query Parts {
-    allCarModels {
+    allCarModels(orderBy: price_ASC) {
       price
       name
       id
@@ -78,7 +78,7 @@ export const primaryQuery = gql`
         ${responsiveImage}
       }
     }
-    allEngines {
+    allEngines(orderBy: price_ASC) {
       id
       name
       price
@@ -86,7 +86,7 @@ export const primaryQuery = gql`
         id
       }
     }
-    allGearboxes {
+    allGearboxes(orderBy: price_ASC) {
       id
       name
       price
@@ -113,6 +113,7 @@ type CommonProps<T = string, ValidProp extends string | never = never> = {
   id: string;
   name: string;
   price: number;
+	disabled?:boolean;
 } & Record<ValidProp, ObjectWithId[]> &
   DatoQuery<T>;
 
