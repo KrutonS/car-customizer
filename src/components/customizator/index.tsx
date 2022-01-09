@@ -8,6 +8,7 @@ import {
 } from "../../store/features/carSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import PartButton from "./partButton";
+import styles from './customizator.module.scss'
 
 const Customizator: FC = () => {
   const {
@@ -39,57 +40,72 @@ const Customizator: FC = () => {
     dispatch(action(value));
   };
 
-  //TODO refactor
   return (
-    <div className='customizator'>
-      <h3>Models</h3>
-      {allCarModels.map((m, index) => {
-        return (
-          <PartButton
-            //No reordering, so this is okay
-            key={index}
-            ///
-            part={m}
-            isActive={index === model}
-            disabled={!mappedModels[index]}
-            onClick={() => btnOnClick(index, setModel, model)}
-          />
-        );
-      })}
-      <h3>Engines</h3>
-      {allEngines.map((e, index) => {
-        return (
-          <PartButton
-            key={index}
-            part={e}
-            isActive={index === engine}
-            disabled={!mappedEngines[index]}
-            onClick={() => btnOnClick(index, setEngine, engine)}
-          />
-        );
-      })}
+    <section className={styles.customizator}>
+      <div className={styles.row}>
+				<h3>Models</h3><div className={styles.buttons}>
+					
+					{allCarModels.map((m, index) => {
+						return (
+							<PartButton
+								//No reordering, so this is okay
+								key={index}
+								///
+								part={m}
+								isActive={index === model}
+								disabled={!mappedModels[index]}
+								onClick={() => btnOnClick(index, setModel, model)}
+							/>
+						);
+					})}
+				</div>
+			</div>
+      <div className={styles.row}>
+				<h3>Engines</h3>
+				<div className={styles.buttons}>
+					{allEngines.map((e, index) => {
+						return (
+							<PartButton
+								key={index}
+								part={e}
+								isActive={index === engine}
+								disabled={!mappedEngines[index]}
+								onClick={() => btnOnClick(index, setEngine, engine)}
+							/>
+						);
+					})}
+				</div>
+			</div>
+      <div className={styles.row}>
       <h3>Gearboxes</h3>
-      {allGearboxes.map((g, index) => {
-        return (
-          <PartButton
-            key={index}
-            part={g}
-            isActive={index === gearbox}
-            disabled={!mappedGearboxes[index]}
-            onClick={() => btnOnClick(index, setGearbox, gearbox)}
-          />
-        );
-      })}
-      <h3>Colors</h3>
-      {allColors.map((c, index) => (
-        <PartButton
-          part={c}
-          key={c.id}
-					isActive={index === color}
-          onClick={() => btnOnClick(index, setColor, color)}
-        />
-      ))}
-    </div>
+      <div className={styles.buttons}>
+				{allGearboxes.map((g, index) => {
+					return (
+						<PartButton
+							key={index}
+							part={g}
+							isActive={index === gearbox}
+							disabled={!mappedGearboxes[index]}
+							onClick={() => btnOnClick(index, setGearbox, gearbox)}
+						/>
+					);
+				})}
+			</div>
+			</div>
+      <div className={styles.row}>
+				<h3>Colors</h3>
+				<div className={styles.buttons}>
+					{allColors.map((c, index) => (
+						<PartButton
+							part={c}
+							key={c.id}
+										isActive={index === color}
+							onClick={() => btnOnClick(index, setColor, color)}
+						/>
+					))}
+				</div>
+			</div>
+    </section>
   );
 };
 

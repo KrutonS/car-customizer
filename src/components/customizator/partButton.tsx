@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { FC } from "react";
 import { Color, Engine, Gearbox, Model } from "../../lib/datocms";
 import Button from "../button";
+import styles from "./customizator.module.scss";
 
 interface Props {
   part: Engine | Gearbox | Model | Color;
@@ -22,8 +23,11 @@ const PartButton: FC<Props> = ({ part, onClick, isActive, disabled }) => {
       key={id}
       onClick={onClick}
       disabled={disabled}
-      className={classNames("part-btn", {
-        "part-btn--active": isActive,
+			data-hex={hex}
+      className={classNames(styles["part-btn"], {
+        "btn--active": isActive,
+        [styles["part-btn--active"]]: isActive,
+        [styles["part-btn--color"]]: hex,
       })}
     >
       {name}
