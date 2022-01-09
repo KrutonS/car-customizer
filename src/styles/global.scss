@@ -1,5 +1,8 @@
+@use "sass:math";
 @use "normalize";
 @use "var";
+
+$main-bg: var.$primary6;
 
 *,
 *::before,
@@ -21,15 +24,16 @@ body {
   font-family: "Nunito", sans-serif;
   line-height: 1.12em;
   letter-spacing: 0.2em;
-  background-color: var.$primary6;
+  background-color: $main-bg;
   color: var.$white;
   font-weight: 600;
 }
+
 @for $i from 1 to 6 {
   h#{$i} {
     font-family: "Piazzolla", serif;
     color: scale-color(var.$complement1, $lightness: $i * -5%);
-    font-size: 6em / $i;
+    font-size: math.div(6em, $i);
     margin-bottom: 0.4em;
   }
 }
@@ -44,50 +48,46 @@ button {
   font-weight: inherit;
 }
 
-// main *+*{
-// 	margin-top: 1.5rem;
-// }
 .btn {
   $bg: var.$complement4;
   $stroke: var.$line-stroke;
   $mask: var.$primary6;
   $skew: var.$skew;
   @include var.before-after;
+
+	padding: 5px 20px;
+	border: $stroke solid $bg;
+
   &::after {
     background: $mask;
-    transform: scaleX(1) skew($skew);
+    transform: scaleX(1);
   }
   &::before {
     background: $bg;
   }
-  padding: 5px 20px;
-  border: $stroke solid $bg;
-  &:focus,
-  &:hover,
+  &:where(:focus, :hover)::after {
+    transform: scaleX(0.9) skew($skew);
+  }
   &--active {
-		&::after {
-			transform: scaleX(0) skew($skew);
-		}
+    color: $main-bg;
+    &::after {
+      transform: scaleX(0) skew($skew);
+    }
   }
   &:disabled {
     opacity: 0.2;
   }
 }
 
-// h1{
-// 	color: var.$complement1;
-// }
-// h2{
-// 	color: var.$complement1;
-// }
-// h3{
-// 	color: var.$complement1;
-// }
-// h4{
-// 	color: var.$complement1;
-// }
 @media (prefers-reduced-motion: no-preference) {
-	.btn::after{
-		transition: transform 0.2s ease-in-out;
-	}
+  .btn::after,
+  .btn {
+    transition: 0.2s ease-in-out;
+  }
+  .btn {
+    transition-property: opacity;
+  }
+  .btn::after {
+    transition-property: transform;
+  }
 }

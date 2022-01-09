@@ -1,0 +1,14 @@
+@use "../../styles/var";
+
+.content {
+  margin-inline: var.$page-margin;
+}
+
+@include var.content-media {
+  .content {
+    display: flex;
+		justify-content: space-between;
+		align-items: center;
+		height: 100vh;
+  }
+}

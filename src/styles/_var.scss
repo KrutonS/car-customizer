@@ -1,30 +1,30 @@
 // https://paletton.com/#uid=23L160kJS6KvW5fuP8MNdeqCnl7
 
 // $primary1: hsl(222, 85%, 24%);
-
+@use "sass:math";
 $pl: -90%;
 $ps: 20%;
 
 $primary1: hsl(222, 55%, 64%);
 $primary2: scale-color(
   $primary1,
-  $lightness: $pl * 1 / 5,
-  $saturation: $ps * 1 / 5
+  $lightness: $pl * math.div(1, 5),
+  $saturation: $ps * math.div(1, 5)
 );
 $primary3: scale-color(
   $primary1,
-  $lightness: $pl * 2 / 5,
-  $saturation: $ps * 2 / 5
+  $lightness: $pl * math.div(2, 5),
+  $saturation: $ps * math.div(2, 5)
 );
 $primary4: scale-color(
   $primary1,
-  $lightness: $pl * 3 / 5,
-  $saturation: $ps * 3 / 5
+  $lightness: $pl * math.div(3, 5),
+  $saturation: $ps * math.div(3, 5)
 );
 $primary5: scale-color(
   $primary1,
-  $lightness: $pl * 4 / 5,
-  $saturation: $ps * 4 / 5
+  $lightness: $pl * math.div(4, 5),
+  $saturation: $ps * math.div(4, 5)
 );
 $primary6: scale-color($primary1, $lightness: $pl * 1, $saturation: $ps * 1);
 
@@ -34,23 +34,23 @@ $cs: 20%;
 $complement1: complement($primary1);
 $complement2: scale-color(
   $complement1,
-  $lightness: $cl * 1 / 5,
-  $saturation: $cs * 1 / 5
+  $lightness: $cl * math.div(1, 5),
+  $saturation: $cs * math.div(1, 5)
 );
 $complement3: scale-color(
   $complement1,
-  $lightness: $cl * 2 / 5,
-  $saturation: $cs * 2 / 5
+  $lightness: $cl * math.div(2, 5),
+  $saturation: $cs * math.div(2, 5)
 );
 $complement4: scale-color(
   $complement1,
-  $lightness: $cl * 3 / 5,
-  $saturation: $cs * 3 / 5
+  $lightness: $cl * math.div(3, 5),
+  $saturation: $cs * math.div(3, 5)
 );
 $complement5: scale-color(
   $complement1,
-  $lightness: $cl * 4 / 5,
-  $saturation: $cs * 4 / 5
+  $lightness: $cl * math.div(4, 5),
+  $saturation: $cs * math.div(4, 5)
 );
 $complement6: scale-color(
   $complement1,
@@ -66,11 +66,20 @@ $line-stroke: 2px;
 
 $skew: 10deg;
 
+// $content-breakpoint: 700px;
+
 %pseudo-init {
   content: "";
   position: absolute;
   inset: 0;
 }
+
+@mixin content-media() {
+  @media screen and (min-width: 700px) {
+    @content;
+  }
+}
+
 @mixin pseudo($sel: "before") {
   position: relative;
   &::#{$sel} {
@@ -92,15 +101,6 @@ $skew: 10deg;
     z-index: -5;
   }
 }
-%btn-active {
-  &::after {
-    transform: scaleX(0) skew($skew);
-  }
-}
-//use empty to handle the media below
-%btn-pseudo{}
-@media (prefers-reduced-motion: no-preference) {
-	%btn{
-		transition: transform 0.2s ease-in-out;
-	}
-}
+// %btn-active {
+
+// }

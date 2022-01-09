@@ -1,0 +1,26 @@
+@use '../../styles/var';
+
+.row{
+	display: flex;
+	justify-content: space-between;
+	&>*{
+		margin: 0;
+	}
+}
+.keep-h{
+	height: 1em;
+}
+.car-image{
+	display: block;
+	max-width: 300px;
+	margin-inline: auto;
+}
+
+@include var.content-media{
+	.summary{
+		flex-basis: 50%;
+	}
+	.title{
+		text-align: right;
+	}
+}

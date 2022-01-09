@@ -1,27 +1,40 @@
-@use '../../styles/var';
+@use "../../styles/var";
 // .part-btn{
 // 	&--active{
 // 		background-color: orange;
 // 	}
 // }
 // .row *
-.customizator{
-	margin: var.$page-margin;
+.row + .row {
+  margin-top: 2em;
 }
-.row + .row{
-	margin-top: 2em;
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
-.buttons{
-	display: flex;
-	flex-direction: column;
-	gap: .25em;
-	& > *{
-		flex-basis: 100%;
+.part-btn{
+	flex-basis: 100%;
+}
+.part-btn--color {
+	height: 1em;
+	opacity: .5;
+	transform-origin: top left;
+	transition: .3s ease-in-out;
+	transition-property: opacity, transform;
+	filter: saturate(35%);
+	 &:hover, &:focus{
+		opacity: .8;
+		filter: none;
+	}
+	&.part-btn--active{
+		opacity: 1;
+		filter: none;
+		transform: translateY(10px);
 	}
 }
-
 @media screen and (min-width: 500px) {
-	.buttons{
-		flex-direction: row;
-	}
+  .buttons {
+    flex-direction: row;
+  }
 }

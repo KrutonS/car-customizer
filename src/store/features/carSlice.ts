@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
+	Color,
   Engine,
   Gearbox,
   Model,
@@ -17,10 +18,10 @@ interface State {
   mappedGearboxes: Gearbox[];
   price?: number;
   // #region They Are Indexes
-  model?: number;
-  engine?: number;
-  gearbox?: number;
-  color?: number;
+  model?: Model;
+  engine?: Engine;
+  gearbox?: Gearbox;
+  color?: Color;
   // #endregion
 }
 const initialState: State = {
@@ -37,23 +38,19 @@ type StatePayload<P extends keyof State> = PayloadAction<PickProp<P>>;
 
 type UndefNumPayl = PayloadAction<number | undefined>;
 // type Nullab<T> = T | null;
-type PartsNullTuple = [Model[], Engine[], Gearbox[]];
+type PartsLayersTuple = [Model[], Engine[], Gearbox[]];
 //#endregion
 
 // #region Local Util Functions
 
 function updatePrice(state: State): number | undefined {
-  const { model, engine, gearbox, parts } = state;
-  const partsIndexes = [model, engine, gearbox];
-  const partsKeys: PartsWithPrice[] = [
-    "allCarModels",
-    "allEngines",
-    "allGearboxes",
-  ];
-  if (partsIndexes.includes(undefined)) return undefined;
-  const newPrice = partsKeys.reduce((sum, key, i) => {
-    const part = parts[key][partsIndexes[i] as number];
-    return sum + part.price;
+  const { model, engine, gearbox } = state;
+  const parts = [model, engine, gearbox];
+
+  // if (parts.includes(undefined)) return undefined;
+  const newPrice = parts.reduce((sum, part) => {
+    // const part = parts[key][parts[i] as number];
+    return sum + (part?.price || 0);
   }, 0);
   return newPrice;
 }
@@ -78,9 +75,10 @@ const mapParts = (parts: Part[], vArr: ObjectWithId[]): Part[] => {
 
 const tree = (
   depth: number,
-  partsArr: PartsNullTuple,
-  indexes: [number | undefined, number | undefined, number | undefined]
-): PartsNullTuple => {
+  partsArr: PartsLayersTuple,
+  active: [Model | undefined, Engine | undefined, Gearbox | undefined]
+  // [number | undefined, number | undefined, number | undefined]
+): PartsLayersTuple => {
   const validOfItem = (item: Part | null): ObjectWithId[] | undefined => {
     switch (item?.__typename) {
       case "CarModelRecord":
@@ -108,8 +106,8 @@ const tree = (
       throw new Error(`Invalid start point in ${funcName}: ${typename}`);
     return valids;
   }
-  function mapDown<T extends Part[][]>(itemIndex: number, localParts: T) {
-    const checkItem = localParts[0][itemIndex];
+  function mapDown<T extends Part[][]>(checkItem: Part, localParts: T) {
+    // const checkItem = localParts[0][checkItem];
     let valids = validOfItem(checkItem);
     valids = assertValids(valids, checkItem?.__typename, "checkDown");
 
@@ -122,10 +120,10 @@ const tree = (
     return localParts;
   }
 
-  const mapUp: typeof mapDown = (itemIndex, localParts) => {
+  const mapUp: typeof mapDown = (checkItem, localParts) => {
     const { length } = localParts;
 
-    let checkItems = [localParts[length - 1][itemIndex]];
+    let checkItems = [checkItem];
 
     for (let i = length - 2; i >= 0; i--) {
       const arrAbove = localParts[i];
@@ -146,27 +144,27 @@ const tree = (
     return localParts;
   };
 
-  const targetInd = indexes[depth];
-  if (targetInd !== undefined)
+  const activePart = active[depth];
+  if (activePart !== undefined)
     partsArr.forEach((parts, _dep) => {
       if (_dep === depth) return parts;
 
       if (_dep - depth > 0) {
-        const slice = mapDown(targetInd, partsArr.slice(depth, _dep + 1));
+        const slice = mapDown(activePart, partsArr.slice(depth, _dep + 1));
         partsArr = partsArr
           .slice(0, depth)
           .concat(slice)
-          .concat(partsArr.slice(_dep + 1)) as PartsNullTuple;
+          .concat(partsArr.slice(_dep + 1)) as PartsLayersTuple;
       } else {
-        const slice = mapUp(targetInd, partsArr.slice(_dep, depth + 1));
+        const slice = mapUp(activePart, partsArr.slice(_dep, depth + 1));
         partsArr = partsArr
           .slice(0, _dep)
           .concat(slice)
-          .concat(partsArr.slice(depth + 1)) as PartsNullTuple;
+          .concat(partsArr.slice(depth + 1)) as PartsLayersTuple;
       }
     });
   if (depth === 0) return partsArr;
-  return tree(depth - 1, partsArr, indexes);
+  return tree(depth - 1, partsArr, active);
 };
 // #endregion
 
@@ -185,7 +183,7 @@ const carSlice = createSlice({
         mappedGearboxes: allGearboxes,
       };
     },
-    setModel(state, { payload }: UndefNumPayl) {
+    setModel(state, { payload }: PayloadAction<Model | undefined>) {
       const { engine, gearbox, parts } = state;
       const { allEngines, allGearboxes, allCarModels } = parts;
       state.model = payload;
@@ -200,7 +198,7 @@ const carSlice = createSlice({
       state.price = updatePrice(state);
       return state;
     },
-    setEngine(state, { payload }: UndefNumPayl) {
+    setEngine(state, { payload }: PayloadAction<Engine | undefined>) {
       const { parts, model, gearbox } = state;
       const { allCarModels, allEngines, allGearboxes } = parts;
       state.engine = payload;
@@ -229,7 +227,7 @@ const carSlice = createSlice({
       state.price = updatePrice(state);
       return state;
     },
-    setGearbox(state, { payload }: UndefNumPayl) {
+    setGearbox(state, { payload }: PayloadAction<Gearbox | undefined>) {
       const { engine, model, parts } = state;
       const { allCarModels, allEngines, allGearboxes } = parts;
       // let mappedEngines: (Engine | null)[] = allEngines;
@@ -261,7 +259,7 @@ const carSlice = createSlice({
       state.price = updatePrice(state);
       return state;
     },
-    setColor(state, { payload }: UndefNumPayl) {
+    setColor(state, { payload }: PayloadAction<Color | undefined>) {
       return { ...state, color: payload };
     },
   },
