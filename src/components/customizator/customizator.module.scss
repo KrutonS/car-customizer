@@ -50,7 +50,7 @@ $bg: lighten(var.$primary, 2%);
 }
 @include var.content-media {
   .customizator {
-    padding-right: var.$page-margin;
+    padding: 0 var.$page-margin 0 0;
     &::before {
       $inset-h: calc(-50vh + 50%);
       inset: $inset-h 0 $inset-h (-(var.$page-margin));
