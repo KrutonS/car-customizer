@@ -1,9 +1,9 @@
 import cn from "classnames";
 import { FC } from "react";
-import { Image } from "react-datocms";
 import { useAppSelector } from "../../store/hooks";
 import {ReactComponent as CarPlaceholder} from '../../assets/car.svg';
 import styles from "./summary.module.scss";
+import CarPreview from "../car-preview";
 
 type RowProps = { label: string; className?: string };
 
@@ -21,13 +21,12 @@ const Summary: FC = () => {
     ({ car }) => car
   );
 
-  // const imageData = model?.image?.responsiveImage;
 		
   return (
     <section className={styles.summary}>
       <h2 className={styles.title}>Summary</h2>
-			<CarPlaceholder className={styles['car-image']}/>
-      {/* {imageData?<Image className={styles['car-image']} data={imageData}/> : <CarPlaceholder className={styles['car-image']}/>} */}
+			{/* <CarPlaceholder className={styles['car-image']}/> */}
+			<CarPreview/>
       {<Row label='Model'>{model?.name}</Row>}
       {<Row label='Engine'>{engine?.name}</Row>}
       {<Row label='Gearbox'>{gearbox?.name}</Row>}
