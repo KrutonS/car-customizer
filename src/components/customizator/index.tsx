@@ -15,12 +15,15 @@ import { generateSearchString } from "../../utils/url";
 import Button from "../button";
 import copyTextToClipboard from "../../utils/copyToClipboard";
 import { toast } from "react-toastify";
+import cn from "../../utils/className";
 
 const Customizator: FC = () => {
   const { parts, color, engine, gearbox, model } = useAppSelector(
     ({ car }) => car
   );
   const { allCarModels, allColors, allEngines, allGearboxes } = parts;
+	console.log('in component', {allCarModels, allEngines, allGearboxes});
+	
   const dispatch = useAppDispatch();
   // const navigate = useNavigate();
   // useEffect(() => {
@@ -93,7 +96,7 @@ const Customizator: FC = () => {
       </div>
       <div className={styles.row}>
         <h3>Colors</h3>
-        <div className={styles.buttons}>
+        <div className={cn(styles.buttons, styles['buttons--colors'])}>
           {allColors.map((c) => {
             const {
               id,
@@ -107,9 +110,9 @@ const Customizator: FC = () => {
                 isActive={id === color?.id}
                 aria-label={name}
                 onClick={() => partOnClick(c, setColor, color)}
-                style={{ background: hex }}
+                // style={{ background: hex }}
               >
-                {null}
+                <div style={{background:hex}}/>
               </PartButton>
             );
           })}

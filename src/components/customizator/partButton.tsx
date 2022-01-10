@@ -29,18 +29,12 @@ const PartButton: FC<Props> = ({
     hex = part.color.hex;
   }
   const { name } = part;
-  // const ref = useRef<HTMLButtonElement>(null);
-  // useLayoutEffect(() => {
-  //   if (hex) ref.current?.style.setProperty("--hex", hex);
-  // }, [hex]);
 
   return (
     <Button
-      // ref={ref}
       onClick={onClick}
       disabled={disabled}
       clearStyling={Boolean(hex)}
-      // style={{ background: hex }}
       className={cn(styles["part-btn"], {
         "btn--active": isActive && !hex,
         [styles["part-btn--active"]]: isActive,
@@ -48,12 +42,9 @@ const PartButton: FC<Props> = ({
       })}
       {...passProps}
     >
-      {/* {hex ? "" : name} */}
       {children !== undefined ? children : name}
     </Button>
   );
-  // }
-  // return null;
 };
 
 export default PartButton;

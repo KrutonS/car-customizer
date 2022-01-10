@@ -22,30 +22,35 @@ $bg: lighten(var.$primary, 2%);
   flex-direction: column;
   gap: 1em;
 }
+.buttons--colors{
+	flex-direction: row;
+}
 .part-btn {
   flex-basis: 100%;
 }
-.part-btn--color {
-  height: 1em;
-  opacity: 0.5;
-  transform-origin: top left;
-  transition: 0.3s ease-in-out;
-  transition-property: opacity, transform;
-	border: 2px solid var.$complement2;
-  filter: saturate(35%);
+.part-btn--color{
+	transform: scale(.7) rotate(45deg);
+	&.part-btn--active div {
+		opacity: 1;
+		filter: none;
+		transform: translateY(-50px) scale(1.3);
+	}
+}
+.part-btn--color div {
+  & {
+    aspect-ratio: 1 / 1;
+		border-radius: 20%;
+    opacity: 0.5;
+		filter: saturate(80%);
+  }
   &:hover,
   &:focus {
     opacity: 0.8;
     filter: none;
   }
-  &.part-btn--active {
-    opacity: 1;
-    filter: none;
-    transform: translateY(10px);
-  }
 }
-.save-btn{
-	margin-top: 2.5	rem;
+.save-btn {
+  margin-top: 2.5 rem;
 }
 @media screen and (min-width: 500px) {
   .buttons {
@@ -60,4 +65,13 @@ $bg: lighten(var.$primary, 2%);
       inset: $inset-h 0 $inset-h (-(var.$page-margin));
     }
   }
+	.part-btn--color{
+		transform: rotate(45deg) scale(.35);
+	}
+}
+@media (prefers-reduced-motion: no-preference) {
+    .part-btn--color div {
+      transition: 0.15s ease-in-out;
+      transition-property: opacity, transform;
+    }
 }
