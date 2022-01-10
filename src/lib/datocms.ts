@@ -74,9 +74,6 @@ export const primaryQuery = gql`
       validEngines {
         id
       }
-      image {
-        ${responsiveImage}
-      }
     }
     allEngines(orderBy: price_ASC) {
       id
@@ -119,9 +116,7 @@ type CommonProps<T = string, ValidProp extends string | never = never> = {
 
 export type ValidKeys = ["validEngines", "validGearboxes"];
 
-export interface Model extends CommonProps<"CarModelRecord", ValidKeys[0]> {
-  image?: DatoImg;
-}
+export type Model = CommonProps<"CarModelRecord", ValidKeys[0]>
 export type Engine = CommonProps<"EngineRecord", ValidKeys[1]>;
 export type Gearbox = CommonProps<"GearboxRecord">;
 export interface Color extends DatoQuery {
