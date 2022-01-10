@@ -27,31 +27,8 @@ $primary4: scale-color(
   $saturation: $ps * math.div(4, 5)
 );
 
-// $primary1: hsl(222, 55%, 64%);
-// $primary2: scale-color(
-//   $primary1,
-//   $lightness: $pl * math.div(1, 5),
-//   $saturation: $ps * math.div(1, 5)
-// );
-// $primary3: scale-color(
-//   $primary1,
-//   $lightness: $pl * math.div(2, 5),
-//   $saturation: $ps * math.div(2, 5)
-// );
-// $primary4: scale-color(
-//   $primary1,
-//   $lightness: $pl * math.div(3, 5),
-//   $saturation: $ps * math.div(3, 5)
-// );
-// $primary5: scale-color(
-//   $primary1,
-//   $lightness: $pl * math.div(4, 5),
-//   $saturation: $ps * math.div(4, 5)
-// );
-// $primary6: scale-color($primary1, $lightness: $pl * 1, $saturation: $ps * 1);
-
 $cl: 65%;
-$cs: 20%;
+$cs: -20%;
 
 $complement: complement($primary);
 $complement1: scale-color(

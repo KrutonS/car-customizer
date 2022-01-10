@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
+import { BrowserRouter as Router } from "react-router-dom";
 import useDato, { PartsQuery, primaryQuery } from "./lib/datocms";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { setParts } from "./store/features/carSlice";
@@ -8,7 +9,7 @@ import Content from "./components/content";
 import Summary from "./components/summary";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/global.scss";
-import cn from "./utils/className";
+import Spinner from "./components/spinner";
 
 function App() {
   const { data } = useDato<PartsQuery>(primaryQuery);
@@ -18,20 +19,18 @@ function App() {
   useEffect(() => {
     data && dispatch(setParts(data));
   }, [data]);
-console.log(cn("part-btn", {
-	"btn--active": true,
-	["part-btn--active"]: false,
-	["part-btn--color"]: true
-}));
 
   return (
     <>
       <ToastContainer />
-      {isLoading ? (
-        <h2>LOADING....</h2>
-      ) : (
-        <Content left={<Customizator />} right={<Summary />} />
-      )}
+      <Router>
+        {isLoading ? (
+          // <PacmanLoader />
+					<Spinner />
+        ) : (
+          <Content left={<Customizator />} right={<Summary />} />
+        )}
+      </Router>
     </>
   );
 }
