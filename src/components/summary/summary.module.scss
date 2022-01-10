@@ -1,26 +1,31 @@
-@use '../../styles/var';
+@use "../../styles/var";
 
-.row{
-	display: flex;
-	justify-content: space-between;
-	&>*{
-		margin: 0;
-	}
+.row {
+  display: flex;
+  justify-content: space-between;
+  @include var.appear;
 }
-.keep-h{
-	height: 1em;
+.keep-h {
+  height: 1em;
 }
-.car-image{
-	display: block;
-	max-width: 300px;
-	margin-inline: auto;
+.car-image {
+  display: block;
+  max-width: 300px;
+  margin-inline: auto;
 }
-
-@include var.content-media{
-	.summary{
-		flex-basis: 50%;
-	}
-	.title{
-		text-align: right;
-	}
+.price {
+  color: var.$complement3;
+}
+.title{
+	margin-bottom: 1em;
+}
+@include var.content-media {
+  .summary {
+    max-width: 700px;
+    flex-basis: 60%;
+    margin-inline: auto;
+  }
+  .title {
+    text-align: right;
+  }
 }

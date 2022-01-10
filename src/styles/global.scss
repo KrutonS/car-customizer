@@ -2,7 +2,7 @@
 @use "normalize";
 @use "var";
 
-$main-bg: var.$primary6;
+$main-bg: var.$primary;
 
 *,
 *::before,
@@ -32,7 +32,7 @@ body {
 @for $i from 1 to 6 {
   h#{$i} {
     font-family: "Piazzolla", serif;
-    color: scale-color(var.$complement1, $lightness: $i * -5%);
+    color: scale-color(var.$complement5, $lightness: $i * -5%);
     font-size: math.div(6em, $i);
     margin-bottom: 0.4em;
   }
@@ -49,14 +49,15 @@ button {
 }
 
 .btn {
-  $bg: var.$complement4;
+  $bg: var.$complement3;
+  $bg-active: var.$complement4;
   $stroke: var.$line-stroke;
-  $mask: var.$primary6;
+  $mask: var.$primary;
   $skew: var.$skew;
   @include var.before-after;
 
-	padding: 5px 20px;
-	border: $stroke solid $bg;
+  padding: 5px 20px;
+  border: $stroke solid $bg;
 
   &::after {
     background: $mask;
@@ -73,10 +74,27 @@ button {
     &::after {
       transform: scaleX(0) skew($skew);
     }
+    &::before {
+      background-color: $bg-active;
+    }
   }
   &:disabled {
     opacity: 0.2;
   }
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+svg .details {
+  fill: var.$primary;
+}
+
+svg .body {
+  fill: var.$complement3;
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -2,58 +2,80 @@
 
 // $primary1: hsl(222, 85%, 24%);
 @use "sass:math";
-$pl: -90%;
-$ps: 20%;
+$pl: 20%;
+$ps: -20%;
 
-$primary1: hsl(222, 55%, 64%);
-$primary2: scale-color(
-  $primary1,
+$primary:hsl(223, 64%, 6%);
+$primary1: scale-color(
+  $primary,
   $lightness: $pl * math.div(1, 5),
   $saturation: $ps * math.div(1, 5)
 );
-$primary3: scale-color(
-  $primary1,
+$primary2: scale-color(
+  $primary,
   $lightness: $pl * math.div(2, 5),
   $saturation: $ps * math.div(2, 5)
 );
-$primary4: scale-color(
-  $primary1,
+$primary3: scale-color(
+  $primary,
   $lightness: $pl * math.div(3, 5),
   $saturation: $ps * math.div(3, 5)
 );
-$primary5: scale-color(
-  $primary1,
+$primary4: scale-color(
+  $primary,
   $lightness: $pl * math.div(4, 5),
   $saturation: $ps * math.div(4, 5)
 );
-$primary6: scale-color($primary1, $lightness: $pl * 1, $saturation: $ps * 1);
 
-$cl: -80%;
+// $primary1: hsl(222, 55%, 64%);
+// $primary2: scale-color(
+//   $primary1,
+//   $lightness: $pl * math.div(1, 5),
+//   $saturation: $ps * math.div(1, 5)
+// );
+// $primary3: scale-color(
+//   $primary1,
+//   $lightness: $pl * math.div(2, 5),
+//   $saturation: $ps * math.div(2, 5)
+// );
+// $primary4: scale-color(
+//   $primary1,
+//   $lightness: $pl * math.div(3, 5),
+//   $saturation: $ps * math.div(3, 5)
+// );
+// $primary5: scale-color(
+//   $primary1,
+//   $lightness: $pl * math.div(4, 5),
+//   $saturation: $ps * math.div(4, 5)
+// );
+// $primary6: scale-color($primary1, $lightness: $pl * 1, $saturation: $ps * 1);
+
+$cl: 65%;
 $cs: 20%;
 
-$complement1: complement($primary1);
-$complement2: scale-color(
-  $complement1,
+$complement: complement($primary);
+$complement1: scale-color(
+  $complement,
   $lightness: $cl * math.div(1, 5),
   $saturation: $cs * math.div(1, 5)
 );
-$complement3: scale-color(
-  $complement1,
+$complement2: scale-color(
+  $complement,
   $lightness: $cl * math.div(2, 5),
   $saturation: $cs * math.div(2, 5)
 );
-$complement4: scale-color(
-  $complement1,
+$complement3: scale-color(
+  $complement,
   $lightness: $cl * math.div(3, 5),
   $saturation: $cs * math.div(3, 5)
 );
-$complement5: scale-color(
-  $complement1,
+$complement4: scale-color(
+  $complement,
   $lightness: $cl * math.div(4, 5),
   $saturation: $cs * math.div(4, 5)
 );
-$complement6: scale-color(
-  $complement1,
+$complement5: scale-color(
+  $complement,
   $lightness: $cl * 1,
   $saturation: $cs * 1
 );
@@ -66,7 +88,7 @@ $line-stroke: 2px;
 
 $skew: 10deg;
 
-// $content-breakpoint: 700px;
+$section-bp: 40%;
 
 %pseudo-init {
   content: "";
@@ -75,7 +97,7 @@ $skew: 10deg;
 }
 
 @mixin content-media() {
-  @media screen and (min-width: 700px) {
+  @media screen and (min-width: 850px) {
     @content;
   }
 }
@@ -101,6 +123,21 @@ $skew: 10deg;
     z-index: -5;
   }
 }
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@mixin appear($delay: 0s) {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: 1s $delay appear ease-in-out;
+  }
+}
+
 // %btn-active {
 
 // }

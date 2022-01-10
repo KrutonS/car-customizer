@@ -2,13 +2,38 @@
 
 .content {
   margin-inline: var.$page-margin;
+	* > section + section{
+		margin-top: 3em;
+	}
+	// background-color: red;
 }
-
+.main{
+	width: 100%;
+}
 @include var.content-media {
-  .content {
-    display: flex;
-		justify-content: space-between;
-		align-items: center;
+	// .right{
+	// 	// background-color: red;
+	// 	flex-basis: 100%;
+	// 	max-width: 50em;
+	// }
+	// .left{
+	// 	background-color: red;
+	// 	height: 100%;
+	// }
+	
+	.content{
 		height: 100vh;
+		* > section + section{
+			margin-top: 0;
+		}
+		// background-c
+	}
+  .main {
+		display: flex;
+		// justify-content: space-between;
+		// align-items: center;
+		// flex-direction: row;
+		// height: 100vh;
+		gap: 3em;
   }
 }

@@ -1,40 +1,59 @@
 @use "../../styles/var";
-// .part-btn{
-// 	&--active{
-// 		background-color: orange;
-// 	}
-// }
-// .row *
-.row + .row {
-  margin-top: 2em;
+
+$bg: lighten(var.$primary, 2%);
+
+.customizator {
+  padding-top: 5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: space-between;
+  gap: 2em;
+  &::before {
+    content: "";
+    background-color: $bg;
+    z-index: -20;
+    position: absolute;
+    inset: -(var.$page-margin);
+  }
 }
 .buttons {
   display: flex;
   flex-direction: column;
   gap: 1em;
 }
-.part-btn{
-	flex-basis: 100%;
+.part-btn {
+  flex-basis: 100%;
 }
 .part-btn--color {
-	height: 1em;
-	opacity: .5;
-	transform-origin: top left;
-	transition: .3s ease-in-out;
-	transition-property: opacity, transform;
-	filter: saturate(35%);
-	 &:hover, &:focus{
-		opacity: .8;
-		filter: none;
-	}
-	&.part-btn--active{
-		opacity: 1;
-		filter: none;
-		transform: translateY(10px);
-	}
+  height: 1em;
+  opacity: 0.5;
+  transform-origin: top left;
+  transition: 0.3s ease-in-out;
+  transition-property: opacity, transform;
+  filter: saturate(35%);
+  &:hover,
+  &:focus {
+    opacity: 0.8;
+    filter: none;
+  }
+  &.part-btn--active {
+    opacity: 1;
+    filter: none;
+    transform: translateY(10px);
+  }
 }
 @media screen and (min-width: 500px) {
   .buttons {
     flex-direction: row;
+  }
+}
+@include var.content-media {
+  .customizator {
+    padding-right: var.$page-margin;
+    &::before {
+      $inset-h: calc(-50vh + 50%);
+      inset: $inset-h 0 $inset-h (-(var.$page-margin));
+    }
   }
 }

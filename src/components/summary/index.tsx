@@ -9,8 +9,8 @@ type RowProps = { label: string; className?: string };
 
 const Row: FC<RowProps> = ({ label, children, className }) => {
   return (
-    <div className={cn(styles.row, className)}>
-      <h4 className={styles["keep-h"]}>{label}</h4>
+    <div key={children + ''} className={cn(styles.row, className)}>
+      <h4 className={styles["keep-h"]}>{children?label:''}</h4>
       <span className={styles["keep-h"]}>{children}</span>
     </div>
   );
@@ -21,11 +21,10 @@ const Summary: FC = () => {
     ({ car }) => car
   );
 
-  const imageData = model?.image?.responsiveImage;
-		console.log(imageData);
+  // const imageData = model?.image?.responsiveImage;
 		
   return (
-    <div className={styles.summary}>
+    <section className={styles.summary}>
       <h2 className={styles.title}>Summary</h2>
 			<CarPlaceholder className={styles['car-image']}/>
       {/* {imageData?<Image className={styles['car-image']} data={imageData}/> : <CarPlaceholder className={styles['car-image']}/>} */}
@@ -33,8 +32,8 @@ const Summary: FC = () => {
       {<Row label='Engine'>{engine?.name}</Row>}
       {<Row label='Gearbox'>{gearbox?.name}</Row>}
       {<Row label='Color'>{color?.name}</Row>}
-      {<Row label='Price'>{price}</Row>}
-    </div>
+      {<Row label='Price' className={styles.price}>{`$ ${price||0}`}</Row>}
+    </section>
   );
 };
 

@@ -1,4 +1,5 @@
 import { FC, ReactElement } from "react";
+import cn from "../../utils/className";
 import styles from "./content.module.scss";
 
 interface Props {
@@ -8,10 +9,12 @@ interface Props {
 
 const Content: FC<Props> = ({ left, right }) => {
   return (
-    <main className={styles.content}>
-      {left}
-      {right}
-    </main>
+    <div className={cn('center', styles.content)}>
+      <main className={styles.main}>
+        {left}
+        {right}
+      </main>
+    </div>
   );
 };
 
