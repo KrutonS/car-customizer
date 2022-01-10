@@ -1,5 +1,22 @@
 @use "../../styles/var";
 
+@keyframes slideTop {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .row {
   display: flex;
   justify-content: space-between;
@@ -24,6 +41,11 @@
     max-width: 700px;
     flex-basis: 60%;
     margin-inline: auto;
+
+		@include var.anim-media{
+			animation: 1s ease-in-out both;
+			animation-name: appear, slideTop;
+		}
   }
   .title {
     text-align: right;

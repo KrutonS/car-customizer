@@ -98,7 +98,7 @@ svg .body {
   fill: var.$complement3;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@include var.anim-media {
   .btn::after,
   .btn {
     transition: 0.2s ease-in-out;
@@ -109,4 +109,12 @@ svg .body {
   .btn::after {
     transition-property: transform;
   }
+}
+@keyframes slideleft{
+	from{
+		transform: translateX(100%);
+	}
+	to{
+		transform: none;
+	}
 }

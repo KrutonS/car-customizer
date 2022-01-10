@@ -5,7 +5,7 @@
 $pl: 20%;
 $ps: -20%;
 
-$primary:hsl(223, 64%, 6%);
+$primary: hsl(223, 64%, 6%);
 $primary1: scale-color(
   $primary,
   $lightness: $pl * math.div(1, 5),
@@ -78,7 +78,11 @@ $section-bp: 40%;
     @content;
   }
 }
-
+@mixin anim-media() {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
 @mixin pseudo($sel: "before") {
   position: relative;
   &::#{$sel} {
@@ -110,11 +114,7 @@ $section-bp: 40%;
   }
 }
 @mixin appear($delay: 0s) {
-  @media (prefers-reduced-motion: no-preference) {
+  @include anim-media {
     animation: 1s $delay appear ease-in-out;
   }
 }
-
-// %btn-active {
-
-// }
