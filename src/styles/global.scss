@@ -27,6 +27,7 @@ body {
   background-color: $main-bg;
   color: var.$white;
   font-weight: 600;
+  --toastify-color-dark: #{var.$primary2};
 }
 
 @for $i from 1 to 6 {

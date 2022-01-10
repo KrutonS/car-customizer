@@ -1,12 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
-	Color,
+  Color,
   Engine,
   Gearbox,
   Model,
   Part,
   PartsQuery,
-  PartsWithPrice,
 } from "../../lib/datocms";
 import { findById, ObjectWithId } from "../../utils/array";
 
@@ -32,24 +31,30 @@ const initialState: State = {
   isLoading: true,
 };
 
-// #region Local Types
+// #region Types
 type PickProp<P extends keyof State> = Required<State>[P];
-type StatePayload<P extends keyof State> = PayloadAction<PickProp<P>>;
-
-type UndefNumPayl = PayloadAction<number | undefined>;
-// type Nullab<T> = T | null;
+export type ParamsId = [
+  string | null,
+  string | null,
+  string | null,
+  string | null
+];
+type InitPayload = PayloadAction<{
+  dato: PickProp<"parts">;
+  paramsIds: ParamsId;
+}>;
 type PartsLayersTuple = [Model[], Engine[], Gearbox[]];
 //#endregion
 
 // #region Local Util Functions
 
-function updatePrice(state: State): number | undefined {
+function updatePrice(
+  state: Pick<State, "model" | "engine" | "gearbox">
+): number | undefined {
   const { model, engine, gearbox } = state;
   const parts = [model, engine, gearbox];
 
-  // if (parts.includes(undefined)) return undefined;
   const newPrice = parts.reduce((sum, part) => {
-    // const part = parts[key][parts[i] as number];
     return sum + (part?.price || 0);
   }, 0);
   return newPrice;
@@ -77,8 +82,8 @@ const tree = (
   depth: number,
   partsArr: PartsLayersTuple,
   active: [Model | undefined, Engine | undefined, Gearbox | undefined]
-  // [number | undefined, number | undefined, number | undefined]
 ): PartsLayersTuple => {
+  //#region Utils
   const validOfItem = (item: Part | null): ObjectWithId[] | undefined => {
     switch (item?.__typename) {
       case "CarModelRecord":
@@ -112,14 +117,12 @@ const tree = (
     valids = assertValids(valids, checkItem?.__typename, "checkDown");
 
     for (let i = 1; i < localParts.length; i++) {
-      if (valids.length === 0) continue;
       const currentParts = localParts[i];
       localParts[i] = mapParts(currentParts, valids);
       valids = getFlatValids(currentParts);
     }
     return localParts;
   }
-
   const mapUp: typeof mapDown = (checkItem, localParts) => {
     const { length } = localParts;
 
@@ -143,6 +146,7 @@ const tree = (
     }
     return localParts;
   };
+  //#endregion
 
   const activePart = active[depth];
   if (activePart !== undefined)
@@ -172,15 +176,42 @@ const carSlice = createSlice({
   name: "car",
   initialState,
   reducers: {
-    setParts(state, { payload }: StatePayload<"parts">) {
-      const { allCarModels, allEngines, allGearboxes } = payload;
+    setParts(state, { payload }: InitPayload) {
+      const { dato, paramsIds } = payload;
+      const { allCarModels, allEngines, allGearboxes, allColors } = dato;
+      const parts = [allCarModels, allEngines, allGearboxes, allColors];
+      const [model, engine, gearbox, color] = paramsIds.map((id, i) =>
+        id
+          ? findById<Model | Engine | Gearbox | Color>(parts[i], id)
+          : undefined
+      ) as [
+        Model | undefined,
+        Engine | undefined,
+        Gearbox | undefined,
+        Color | undefined
+      ];
+
+      const [mappedModels, mappedEngines, mappedGearboxes] = tree(
+        2,
+        [allCarModels, allEngines, allGearboxes],
+        [model, engine, gearbox]
+      );
+				const price = updatePrice({model, engine, gearbox})
       return {
         ...state,
-        parts: payload,
+        parts: dato,
         isLoading: false,
-        mappedModels: allCarModels,
-        mappedEngines: allEngines,
-        mappedGearboxes: allGearboxes,
+        mappedModels,
+        allCarModels,
+        mappedEngines,
+        allEngines,
+        mappedGearboxes,
+        allGearboxes,
+				price,
+        model,
+        engine,
+        gearbox,
+        color,
       };
     },
     setModel(state, { payload }: PayloadAction<Model | undefined>) {
@@ -208,19 +239,6 @@ const carSlice = createSlice({
         [model, payload, gearbox]
       );
 
-      // console.log(payload);
-      // if (payload !== undefined) {
-      //   const { validGearboxes } = allEngines[payload];
-
-      //   mappedGearboxes = mapParts(
-      //     allGearboxes,
-      //     validGearboxes
-      //   ) as Nullab<Gearbox>[];
-      //   mappedModels = modelsByEngine(allCarModels, allEngines[payload]);
-
-      //   // clearIfInvalid(state, model, mappedModels, "model");
-      //   // clearIfInvalid(state, gearbox, mappedGearboxes, "gearbox");
-      // }
       state.mappedGearboxes = mappedGearboxes; //modelsByEngine()
       state.mappedModels = mappedModels;
       state.mappedEngines = mappedEngines;
@@ -230,27 +248,12 @@ const carSlice = createSlice({
     setGearbox(state, { payload }: PayloadAction<Gearbox | undefined>) {
       const { engine, model, parts } = state;
       const { allCarModels, allEngines, allGearboxes } = parts;
-      // let mappedEngines: (Engine | null)[] = allEngines;
-      // let mappedModels: (Model | null)[] = allCarModels;
-      // console.log(
       const [mappedModels, mappedEngines, mappedGearboxes] = tree(
         2,
         [allCarModels, allEngines, allGearboxes],
         [model, engine, payload]
       );
-      // );
       state.gearbox = payload;
-      // if (payload !== undefined) {
-      //   mappedEngines = enginesByModelGearbox(
-      //     allEngines,
-      //     allCarModels,
-      //     model,
-      //     allGearboxes[payload]
-      //   );
-      // }
-      // if (engine !== undefined) {
-      //   mappedModels = modelsByEngine(allCarModels, allEngines[engine]);
-      // }
 
       state.mappedEngines = mappedEngines;
       state.mappedModels = mappedModels;

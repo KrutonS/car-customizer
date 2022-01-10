@@ -31,6 +31,7 @@ $bg: lighten(var.$primary, 2%);
   transform-origin: top left;
   transition: 0.3s ease-in-out;
   transition-property: opacity, transform;
+	border: 2px solid var.$complement2;
   filter: saturate(35%);
   &:hover,
   &:focus {
@@ -42,6 +43,9 @@ $bg: lighten(var.$primary, 2%);
     filter: none;
     transform: translateY(10px);
   }
+}
+.save-btn{
+	margin-top: 2.5rem;
 }
 @media screen and (min-width: 500px) {
   .buttons {

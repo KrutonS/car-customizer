@@ -1,5 +1,6 @@
 import { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 import { FC } from "react";
+import { generatePath } from "react-router-dom";
 import {
   setColor,
   setEngine,
@@ -10,6 +11,10 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import PartButton from "./partButton";
 import styles from "./customizator.module.scss";
 import { Color, Part } from "../../lib/datocms";
+import { generateSearchString } from "../../utils/url";
+import Button from "../button";
+import copyTextToClipboard from "../../utils/copyToClipboard";
+import { toast } from "react-toastify";
 
 const Customizator: FC = () => {
   const {
@@ -27,14 +32,19 @@ const Customizator: FC = () => {
   });
 
   const dispatch = useAppDispatch();
+  // const navigate = useNavigate();
+  // useEffect(() => {
 
-  const btnOnClick = <T extends Part | Color>(
+  // }, [model, engine, gearbox]);
+
+  const partOnClick = <T extends Part | Color>(
     part: T,
     action: ActionCreatorWithPayload<T | undefined>,
     current: Part | Color | undefined
   ) => {
+    const { id } = part;
     let value: T | undefined = part;
-    if (part.id === current?.id) value = undefined;
+    if (id === current?.id) value = undefined;
     dispatch(action(value));
   };
 
@@ -51,7 +61,7 @@ const Customizator: FC = () => {
                 part={m}
                 isActive={id === model?.id}
                 disabled={disabled}
-                onClick={() => btnOnClick(m, setModel, model)}
+                onClick={() => partOnClick(m, setModel, model)}
               />
             );
           })}
@@ -68,7 +78,7 @@ const Customizator: FC = () => {
                 part={e}
                 isActive={id === engine?.id}
                 disabled={disabled}
-                onClick={() => btnOnClick(e, setEngine, engine)}
+                onClick={() => partOnClick(e, setEngine, engine)}
               />
             );
           })}
@@ -85,7 +95,7 @@ const Customizator: FC = () => {
                 part={g}
                 isActive={id === gearbox?.id}
                 disabled={disabled}
-                onClick={() => btnOnClick(g, setGearbox, gearbox)}
+                onClick={() => partOnClick(g, setGearbox, gearbox)}
               />
             );
           })}
@@ -106,7 +116,7 @@ const Customizator: FC = () => {
                 key={id}
                 isActive={id === color?.id}
                 aria-label={name}
-                onClick={() => btnOnClick(c, setColor, color)}
+                onClick={() => partOnClick(c, setColor, color)}
                 style={{ background: hex }}
               >
                 {null}
@@ -115,6 +125,30 @@ const Customizator: FC = () => {
           })}
         </div>
       </div>
+      <Button
+			className={styles['save-btn']}
+        onClick={async () => {
+          const newSearchParams = {
+            model: model?.id,
+            engine: engine?.id,
+            gearbox: gearbox?.id,
+            color: color?.id,
+          };
+          const { origin } = window.location;
+
+          const searchUrl = generatePath(
+            generateSearchString(newSearchParams),
+            newSearchParams
+          );
+
+          await copyTextToClipboard(`${origin}/${searchUrl}`);
+          toast.success(
+            "Generated url copied to clipboard. Use it to restore your work!"
+          );
+        }}
+      >
+        Save your work
+      </Button>
     </section>
   );
 };
