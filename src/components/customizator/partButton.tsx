@@ -2,8 +2,6 @@ import {
   AriaAttributes,
   FC,
   HTMLAttributes,
-  useLayoutEffect,
-  useRef,
 } from "react";
 // import cn from "classnames";
 import { Color, Engine, Gearbox, Model } from "../../lib/datocms";

@@ -17,20 +17,10 @@ import copyTextToClipboard from "../../utils/copyToClipboard";
 import { toast } from "react-toastify";
 
 const Customizator: FC = () => {
-  const {
-    mappedEngines,
-    mappedGearboxes,
-    mappedModels,
-    color,
-    engine,
-    gearbox,
-    model,
-    allColors,
-  } = useAppSelector(({ car }) => {
-    const { parts, ...pass } = car;
-    return { ...pass, ...parts };
-  });
-
+  const { parts, color, engine, gearbox, model } = useAppSelector(
+    ({ car }) => car
+  );
+  const { allCarModels, allColors, allEngines, allGearboxes } = parts;
   const dispatch = useAppDispatch();
   // const navigate = useNavigate();
   // useEffect(() => {
@@ -53,7 +43,7 @@ const Customizator: FC = () => {
       <div className={styles.row}>
         <h3>Models</h3>
         <div className={styles.buttons}>
-          {mappedModels.map((m) => {
+          {allCarModels.map((m) => {
             const { id, disabled } = m;
             return (
               <PartButton
@@ -70,7 +60,7 @@ const Customizator: FC = () => {
       <div className={styles.row}>
         <h3>Engines</h3>
         <div className={styles.buttons}>
-          {mappedEngines.map((e) => {
+          {allEngines.map((e) => {
             const { id, disabled } = e;
             return (
               <PartButton
@@ -87,7 +77,7 @@ const Customizator: FC = () => {
       <div className={styles.row}>
         <h3>Gearboxes</h3>
         <div className={styles.buttons}>
-          {mappedGearboxes.map((g) => {
+          {allGearboxes.map((g) => {
             const { id, disabled } = g;
             return (
               <PartButton
@@ -126,7 +116,8 @@ const Customizator: FC = () => {
         </div>
       </div>
       <Button
-			className={styles['save-btn']}
+        className={styles["save-btn"]}
+				disabled={!(model || engine || gearbox || color)}
         onClick={async () => {
           const newSearchParams = {
             model: model?.id,
