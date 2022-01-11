@@ -10,6 +10,7 @@ import Summary from "./components/summary";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/global.scss";
 import Spinner from "./components/spinner";
+import Head from "./components/head";
 
 function App() {
   const { data } = useDato<PartsQuery>(primaryQuery);
@@ -17,13 +18,12 @@ function App() {
   const { isLoading } = useAppSelector(({ car }) => car);
   const [searchParams] = useSearchParams();
 
-  const partsIds: ParamsId =
-    [
-      searchParams.get("model"),
-      searchParams.get("engine"),
-      searchParams.get("gearbox"),
-      searchParams.get("color"),
-    ];
+  const partsIds: ParamsId = [
+    searchParams.get("model"),
+    searchParams.get("engine"),
+    searchParams.get("gearbox"),
+    searchParams.get("color"),
+  ];
 
   useEffect(() => {
     data && dispatch(setParts({ dato: data, paramsIds: partsIds }));
@@ -31,7 +31,8 @@ function App() {
 
   return (
     <div className='App'>
-      <ToastContainer theme="dark"/>
+      <Head />
+      <ToastContainer theme='dark' />
       {isLoading ? (
         <Spinner />
       ) : (
