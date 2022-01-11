@@ -1,7 +1,6 @@
 import cn from "classnames";
 import { FC } from "react";
 import { useAppSelector } from "../../store/hooks";
-import {ReactComponent as CarPlaceholder} from '../../assets/car.svg';
 import styles from "./summary.module.scss";
 import CarPreview from "../car-preview";
 
@@ -25,7 +24,6 @@ const Summary: FC = () => {
   return (
     <section className={styles.summary}>
       <h2 className={styles.title}>Summary</h2>
-			{/* <CarPlaceholder className={styles['car-image']}/> */}
 			<CarPreview/>
       {<Row label='Model'>{model?.name}</Row>}
       {<Row label='Engine'>{engine?.name}</Row>}

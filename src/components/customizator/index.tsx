@@ -22,7 +22,6 @@ const Customizator: FC = () => {
     ({ car }) => car
   );
   const { allCarModels, allColors, allEngines, allGearboxes } = parts;
-	console.log('in component', {allCarModels, allEngines, allGearboxes});
 	
   const dispatch = useAppDispatch();
   // const navigate = useNavigate();
