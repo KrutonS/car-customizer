@@ -24,12 +24,16 @@ const Summary: FC = () => {
   return (
     <section className={styles.summary}>
       <h2 className={styles.title}>Summary</h2>
-			<CarPreview/>
+      <CarPreview />
       {<Row label='Model'>{model?.name}</Row>}
       {<Row label='Engine'>{engine?.name}</Row>}
       {<Row label='Gearbox'>{gearbox?.name}</Row>}
       {<Row label='Color'>{color?.name}</Row>}
-      {<Row label='Price' className={styles.price}>{`$ ${price||0}`}</Row>}
+      {
+        <Row label='Price' className={styles.price}>
+          {price ? `$ ${price}` : null}
+        </Row>
+      }
     </section>
   );
 };

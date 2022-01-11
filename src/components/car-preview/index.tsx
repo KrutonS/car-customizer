@@ -13,6 +13,7 @@ import Spinner from "../spinner";
 import { useAppSelector } from "../../store/hooks";
 import styles from "./carPreview.module.scss";
 import CarModel from "./Car";
+import { Color } from "three";
 
 const canvasHeight = "300px";
 
@@ -59,12 +60,18 @@ const CarPreview = () => {
           camera={{ position: [-11, 11, 11] }}
         >
           <CameraController />
-          {/* <ambientLight /> */}
-          {/* <pointLight position={[10, 10, 10]} /> */}
-					<pointLight position={[0, 10, 0]}/>
-					<Suspense fallback={false}>
-          <Environment preset="night"/>
-					</Suspense>
+          <pointLight color='#adb3ff' position={[1, 15, 2]} intensity={0.5} />
+          <Suspense
+            fallback={
+              <hemisphereLight
+                color={0x000000}
+                groundColor={new Color(0x080520)}
+                intensity={2}
+              />
+            }
+          >
+            <Environment preset='night' />
+          </Suspense>
           <CarModel hex={hex} />
         </Canvas>
       </Suspense>

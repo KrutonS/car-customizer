@@ -12,8 +12,7 @@ export function useLerp(from: Color, to: Color, duration = 1, ms = 1000 / 60) {
       const color = trans.lerp(to, progress);
       setTrans(color);
     }
-		
-    if (!from.equals(to)) {
+    if (!trans.equals(to)) {
       const interval = setInterval(onTimeout, ms);
       const clearInter = () => clearInterval(interval);
       const timeout = setTimeout(clearInter, duration * 1000);
