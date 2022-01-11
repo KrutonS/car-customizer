@@ -1,25 +1,24 @@
 @use "../../styles/var";
 
-
 .content {
   margin-inline: var.$page-margin;
-	* > section + section{
-		margin-top: 3em;
-	}
+  * > section + section {
+    margin-top: 3em;
+  }
 }
-.main{
-	width: 100%;
+.main {
+  width: 100%;
 }
 @include var.content-media {
-	
-	.content{
-		height: 100vh;
-		* > section + section{
-			margin-top: 0;
-		}
-	}
+  .content {
+    height: 100vh;
+    overflow-y: hidden;
+    * > section + section {
+      margin-top: 0;
+    }
+  }
   .main {
-		display: flex;
-		gap: 3em;
+    display: flex;
+    gap: 3em;
   }
 }

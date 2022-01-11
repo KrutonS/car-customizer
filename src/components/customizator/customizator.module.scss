@@ -49,7 +49,7 @@ $bg: lighten(var.$primary, 2%);
   &.part-btn--active div {
     opacity: 1;
     filter: none;
-    transform: translateY(-50px) scale(1.3);
+    transform: scale(1.3);
   }
 }
 .part-btn--color div {
@@ -76,13 +76,13 @@ $bg: lighten(var.$primary, 2%);
 @include var.content-media {
   .customizator {
     padding: 0 var.$page-margin 0 0;
-    
-		@include var.anim-media {
+
+    @include var.anim-media {
       animation: 1s ease-in-out both;
       animation-name: slideRight, appear;
     }
-    
-		&::before {
+
+    &::before {
       $inset-h: calc(-50vh + 50%);
       inset: $inset-h 0 $inset-h (-(var.$page-margin));
     }
@@ -90,6 +90,10 @@ $bg: lighten(var.$primary, 2%);
 
   .part-btn--color {
     transform: rotate(45deg) scale(0.35);
+
+    &.part-btn--active div {
+      transform: translateY(-50px) scale(1.3);
+    }
   }
 }
 
