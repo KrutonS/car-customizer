@@ -1,18 +1,20 @@
-import { Color, MeshStandardMaterial } from "three";
 import { useRef } from "react";
 import {
   Canvas,
   extend,
   ReactThreeFiber,
   useFrame,
-  useLoader,
   useThree,
 } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { Environment } from "@react-three/drei";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Suspense } from "react";
 import Spinner from "../spinner";
 import { useAppSelector } from "../../store/hooks";
+import styles from "./carPreview.module.scss";
+import CarModel from "./Car";
+
+const canvasHeight = "300px";
 
 extend({ OrbitControls });
 
@@ -42,33 +44,31 @@ const CameraController = () => {
       autoRotate={true}
       autoRotateSpeed={1}
       enableZoom={false}
+      enablePan={false}
     ></orbitControls>
   );
 };
 
-const Car = ({ color }: { color?: string }) => {
-  const gltf = useLoader(GLTFLoader, "/car.gltf");
-  console.log(gltf);
-  if (color)
-    (gltf.materials["Body"] as MeshStandardMaterial).color = new Color(color);
-  return <primitive object={gltf.scene} />;
-};
 const CarPreview = () => {
-  const color = useAppSelector(({ car }) => car.color?.color.hex);
+  const hex = useAppSelector(({ car }) => car.color?.color.hex);
   return (
-    <>
+    <div className={styles["car-model"]} style={{ height: canvasHeight }}>
       <Suspense fallback={<Spinner />}>
         <Canvas
-          style={{ width: "100%", height: "300px" }}
+          style={{ width: "100%", height: canvasHeight }}
           camera={{ position: [-11, 11, 11] }}
         >
           <CameraController />
-          <ambientLight />
-          <pointLight position={[10, 10, 10]} />
-          <Car color={color} />
+          {/* <ambientLight /> */}
+          {/* <pointLight position={[10, 10, 10]} /> */}
+					<pointLight position={[0, 10, 0]}/>
+					<Suspense fallback={false}>
+          <Environment preset="night"/>
+					</Suspense>
+          <CarModel hex={hex} />
         </Canvas>
       </Suspense>
-    </>
+    </div>
   );
 };
 
