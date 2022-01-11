@@ -124,9 +124,6 @@ const tree = (
     }
   };
   //#endregion
-  // partsArr.forEach((parts) =>
-  //   parts.forEach((part) => part.disabled && console.log("in:", part))
-  // );
 
   const clearDisables = depth === 2;
 
@@ -146,11 +143,6 @@ const tree = (
         mapUp(activePart, partsArr.slice(_dep, depth + 1));
       }
     });
-  // console.log(depth);
-
-  // partsArr.forEach((parts) =>
-  //   parts.forEach((part) => part.disabled && console.log("out:", part))
-  // );
 
   if (depth === 0) return partsArr;
   return tree(partsArr, active, depth - 1);
