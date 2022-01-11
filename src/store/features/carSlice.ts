@@ -13,12 +13,10 @@ interface State {
   parts: PartsQuery;
   isLoading: boolean;
   price?: number;
-  // #region They Are Indexes
   model?: Model;
   engine?: Engine;
   gearbox?: Gearbox;
   color?: Color;
-  // #endregion
 }
 const initialState: State = {
   parts: { allCarModels: [], allColors: [], allEngines: [], allGearboxes: [] },
