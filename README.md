@@ -17,6 +17,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Starting the App
 For development mode run `npm start`.
+
 To build and start in production mode, run `npm run build` and then `npm run serve`.
 
 You can also just [visit the app online](https://car-customizer.netlify.app/)
