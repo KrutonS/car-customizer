@@ -30,6 +30,10 @@ body {
   --toastify-color-dark: #{var.$primary2};
 }
 
+.App{
+	overflow-y: hidden;
+}
+
 @for $i from 1 to 6 {
   h#{$i} {
     font-family: "Piazzolla", serif;
