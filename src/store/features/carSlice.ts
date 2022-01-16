@@ -36,7 +36,6 @@ type InitPayload = PayloadAction<{
   dato: PickProp<"parts">;
   paramsIds: ParamsId;
 }>;
-type PartsLayersTuple = [Model[], Engine[], Gearbox[]];
 //#endregion
 
 // #region Local Util Functions
@@ -64,86 +63,12 @@ const setDisable = (part: Part, disable = true): Part => ({
 });
 
 const tree = (
-  partsArr: PartsLayersTuple,
+  partsArr: PartsQuery,
   active: [Model | undefined, Engine | undefined, Gearbox | undefined],
-  depth = 2
-): PartsLayersTuple => {
+  root: Part
+  // depth = 2
+) => {
   //#region Utils
-  const validOfItem = (item: Part | null): ObjectWithId[] | undefined => {
-    switch (item?.__typename) {
-      case "CarModelRecord":
-        return item.validEngines;
-      case "EngineRecord":
-        return item.validGearboxes;
-      default:
-        return undefined;
-    }
-  };
-  const getFlatValids = (parts: Part[]): ObjectWithId[] => {
-    return parts.reduce((valids, part) => {
-      let partValids: ObjectWithId[] | undefined;
-      if (!part.disabled) partValids = validOfItem(part);
-
-      return [...valids, ...(partValids || [])];
-    }, [] as ObjectWithId[]);
-  };
-  function mapDown<T extends Part[][]>(checkItem: Part, localParts: T) {
-    let valids = validOfItem(checkItem) as ObjectWithId[];
-
-    for (let i = 1; i < localParts.length; i++) {
-      const partsBelow = localParts[i];
-      // mapParts(currentParts, valids);
-      partsBelow.forEach((part, j) => {
-        const { disabled } = part;
-        const isValid = !disabled && isPartValid(valids, part);
-        if (!isValid) part = setDisable(part);
-        partsBelow[j] = part;
-      });
-      valids = getFlatValids(partsBelow);
-    }
-  }
-  const mapUp: typeof mapDown = (checkItem, localParts) => {
-    const { length } = localParts;
-
-    let checkItems = [checkItem];
-
-    for (let i = length - 2; i >= 0; i--) {
-      const partsAbove = localParts[i];
-      partsAbove.forEach((part, j) => {
-        const valids = validOfItem(part);
-        if (valids === undefined) return part;
-        const isValid = checkItems.some((item) => {
-          return isPartValid(valids, item);
-        });
-        if (!isValid) part = setDisable(part);
-        partsAbove[j] = part;
-      });
-      checkItems = partsAbove;
-    }
-  };
-  //#endregion
-
-  const clearDisables = depth === 2;
-
-  if (clearDisables)
-    partsArr = partsArr.map((parts) =>
-      parts.map((part) => setDisable(part, false))
-    ) as PartsLayersTuple;
-
-  const activePart = active[depth];
-  if (activePart !== undefined)
-    partsArr.forEach((parts, _dep) => {
-      if (_dep === depth) return parts;
-
-      if (_dep - depth > 0) {
-        mapDown(activePart, partsArr.slice(depth, _dep + 1));
-      } else {
-        mapUp(activePart, partsArr.slice(_dep, depth + 1));
-      }
-    });
-
-  if (depth === 0) return partsArr;
-  return tree(partsArr, active, depth - 1);
 };
 // #endregion
 
@@ -153,7 +78,7 @@ const carSlice = createSlice({
   reducers: {
     setParts(state, { payload }: InitPayload) {
       const { dato, paramsIds } = payload;
-      let { allCarModels, allEngines, allGearboxes } = dato;
+      const { allCarModels, allEngines, allGearboxes } = dato;
       const { allColors } = dato;
       const partsArr = [allCarModels, allEngines, allGearboxes, allColors];
       const [model, engine, gearbox, color] = paramsIds.map((id, i) =>
@@ -167,10 +92,6 @@ const carSlice = createSlice({
         Color | undefined
       ];
 
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, engine, gearbox]
-      );
       const parts = { allCarModels, allEngines, allGearboxes, allColors };
       const price = updatePrice({ model, engine, gearbox });
       return {
@@ -186,13 +107,9 @@ const carSlice = createSlice({
     },
     setModel(state, { payload }: PayloadAction<Model | undefined>) {
       const { engine, gearbox, parts } = state;
-      let { allEngines, allGearboxes, allCarModels } = parts;
+      const { allEngines, allGearboxes, allCarModels } = parts;
       state.model = payload;
 
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [payload, engine, gearbox]
-      );
       parts.allCarModels = allCarModels;
       parts.allEngines = allEngines;
       parts.allGearboxes = allGearboxes;
@@ -201,13 +118,8 @@ const carSlice = createSlice({
     },
     setEngine(state, { payload }: PayloadAction<Engine | undefined>) {
       const { parts, model, gearbox } = state;
-      let { allCarModels, allEngines, allGearboxes } = parts;
+      const { allCarModels, allEngines, allGearboxes } = parts;
       state.engine = payload;
-
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, payload, gearbox]
-      );
 
       parts.allCarModels = allCarModels;
       parts.allEngines = allEngines;
@@ -218,13 +130,8 @@ const carSlice = createSlice({
     },
     setGearbox(state, { payload }: PayloadAction<Gearbox | undefined>) {
       const { engine, model, parts } = state;
-      let { allCarModels, allEngines, allGearboxes } = parts;
+      const { allCarModels, allEngines, allGearboxes } = parts;
       state.gearbox = payload;
-
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, engine, payload]
-      );
 
       parts.allCarModels = allCarModels;
       parts.allEngines = allEngines;
