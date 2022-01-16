@@ -14,7 +14,6 @@ export default function CarModel({ hex, ...props }) {
   const bodyMaterial = materials.Body;
   const initialCol = useRef(bodyMaterial.color);
 	const targetCol = new Color(hex);
-	console.log({targetCol, init:initialCol.current});
   const color = useLerp(initialCol.current, targetCol);
 
   bodyMaterial.color = color;
