@@ -53,6 +53,9 @@ function updatePrice(
   return newPrice;
 }
 
+
+const startingDepth = 2;
+
 const isPartValid = (validArray: ObjectWithId[], part: Part): boolean => {
   if (part.disabled) return false;
   const foundItem = findById<ObjectWithId | Part>(validArray, part.id);
@@ -66,7 +69,7 @@ const setDisable = (part: Part, disable = true): Part => ({
 const tree = (
   partsArr: PartsLayersTuple,
   active: [Model | undefined, Engine | undefined, Gearbox | undefined],
-  depth = 2
+  depth = startingDepth
 ): PartsLayersTuple => {
   //#region Utils
   const validOfItem = (item: Part | null): ObjectWithId[] | undefined => {
@@ -123,7 +126,7 @@ const tree = (
   };
   //#endregion
 
-  const clearDisables = depth === 2;
+  const clearDisables = depth === startingDepth;
 
   if (clearDisables)
     partsArr = partsArr.map((parts) =>
