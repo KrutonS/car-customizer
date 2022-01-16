@@ -89,8 +89,8 @@ export const primaryQuery = gql`
       price
     }
     allColors {
-			id
-			name
+      id
+      name
       color {
         hex
       }
@@ -106,31 +106,47 @@ export interface DatoQuery<T = string> {
 }
 export type DatoImg = { responsiveImage: ResponsiveImageType };
 
-type CommonProps<T = string, ValidProp extends string | never = never> = {
+type CommonProps<
+  T = string,
+  ValidKey extends string | never = never,
+  ValidValue = ObjectWithId[]
+> = {
   id: string;
   name: string;
   price: number;
-	disabled?:boolean;
-} & Record<ValidProp, ObjectWithId[]> &
+  disabled?: boolean;
+} & Record<ValidKey, ValidValue> &
   DatoQuery<T>;
 
 export type ValidKeys = ["validEngines", "validGearboxes"];
 
-export type Model = CommonProps<"CarModelRecord", ValidKeys[0]>
-export type Engine = CommonProps<"EngineRecord", ValidKeys[1]>;
+export type Model<ValidValue = ObjectWithId[]> = CommonProps<
+  "CarModelRecord",
+  ValidKeys[0],
+  ValidValue
+>;
+export type Engine<ValidValue = ObjectWithId[]> = CommonProps<
+  "EngineRecord",
+  ValidKeys[1],
+  ValidValue
+>;
 export type Gearbox = CommonProps<"GearboxRecord">;
-export interface Color extends DatoQuery {
-  id: string;
-  name: string;
+export interface Color extends Omit<CommonProps<'ColorRecord'>,'price'> {
+  // id: string;
+  // name: string;
   color: { hex: string };
 }
 export interface PartsQuery {
+	[k: string]:Part<boolean>[];
   allCarModels: Model[];
   allGearboxes: Gearbox[];
   allEngines: Engine[];
   allColors: Color[];
 }
-export type Part = Model | Engine | Gearbox;
+export type Part<IsTree extends boolean = false> =
+  | Model<IsTree extends true ? Engine : ObjectWithId[]>
+  | Engine<IsTree extends true ? Gearbox : ObjectWithId[]>
+  | Gearbox | Color;
 
 type PartExtends<P extends keyof PartsQuery, T> = P extends never
   ? never
@@ -144,7 +160,7 @@ export type PartsWithPrice<P extends keyof PartsQuery = keyof PartsQuery> =
 type PartWithTypename<
   T extends Part["__typename"],
   P extends Part
-> = P extends never?never: T extends P['__typename']?P:never;
+> = P extends never ? never : T extends P["__typename"] ? P : never;
 
 export type GetPartWithTypename<T extends Part["__typename"]> = T extends never
   ? never

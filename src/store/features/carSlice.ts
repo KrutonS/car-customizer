@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   Color,
@@ -6,7 +7,9 @@ import {
   Model,
   Part,
   PartsQuery,
+  ValidKeys,
 } from "../../lib/datocms";
+import { UnionToIntersection } from "../../types";
 import { findById, ObjectWithId } from "../../utils/array";
 
 interface State {
@@ -52,7 +55,10 @@ function updatePrice(
   return newPrice;
 }
 
-const isPartValid = (validArray: ObjectWithId[], part: Part): boolean => {
+const isPartValid = (
+  validArray: ObjectWithId[],
+  part: Part<boolean>
+): boolean => {
   if (part.disabled) return false;
   const foundItem = findById<ObjectWithId | Part>(validArray, part.id);
   return Boolean(foundItem);
@@ -61,14 +67,62 @@ const setDisable = (part: Part, disable = true): Part => ({
   ...part,
   disabled: disable,
 });
+const getName = (key: string, reg = /([A-Z]?[a-z]+?)e?s/): string => {
+  const regResult = reg.exec(key);
+  if (!regResult)
+    throw new Error("Failure when parsing key to partName " + key);
+  return regResult[1];
+};
+const getNameReg = (key: string) => new RegExp(getName(key), "i");
+const getValids = (parts: Part<boolean>) =>
+  Object.entries(parts).filter(([name]) => /^valid/i.test(name)) as [
+    string,
+    ObjectWithId[]
+  ][];
 
 const tree = (
-  partsArr: PartsQuery,
-  active: [Model | undefined, Engine | undefined, Gearbox | undefined],
-  root: Part
-  // depth = 2
+  allParts: PartsQuery,
+  allActives: Pick<State, "model" | "engine" | "gearbox" | "color">,
+  root: [string, Part<boolean>[]]
 ) => {
-  //#region Utils
+  const partsEntries = Object.entries(allParts);
+
+  const idsToParts = (
+    valids: [string, ObjectWithId[]]
+  ): [string, (Part<boolean>)[]] => {
+    const nameReg = getNameReg(valids[0]);
+    const partsEntry = partsEntries.find(([name]) => nameReg.test(name));
+    if (!partsEntry) throw new Error("Couldn't find parts");
+    const parts = valids[1].map(({ id }) => {
+      const part = findById(partsEntry[1], id);
+      if (part === undefined)
+        throw new Error(
+          `Couldn't find part with id ${id} of ${valids[0]} in ${partsEntry[0]}`
+        );
+				
+				return part;
+			});
+    return [partsEntry[0], parts];
+  };
+  // const lookupTree = { [root[0]]: [...root[1]] };
+  // const current = lookupTree[root[0]];
+	const lookupTree = root[1].map(p=>connectValids(p as any));
+
+  function connectValids(part: Part & Record<string, ObjectWithId[] | Part[]>):Part<true> {
+    const validsArr = getValids(part);
+    const validsPartsEntr = validsArr.map((valids) => {
+			
+      const connectedParts = idsToParts(valids);
+			const a = connectedParts[1].map(p=>connectValids(p as any));
+			return [valids[0],a]
+    });
+		
+		const validsParts = Object.fromEntries(validsPartsEntr);
+		console.log({part:{...part, ...validsParts}});
+		return {...part, ...validsParts}
+  }
+	console.log(lookupTree);
+	
 };
 // #endregion
 
@@ -93,6 +147,10 @@ const carSlice = createSlice({
       ];
 
       const parts = { allCarModels, allEngines, allGearboxes, allColors };
+      tree(dato, { model, engine, gearbox, color }, [
+        "allCarModels",
+        allCarModels,
+      ]);
       const price = updatePrice({ model, engine, gearbox });
       return {
         ...state,
