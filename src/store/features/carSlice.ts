@@ -68,7 +68,10 @@ const setDisable = <T extends Part<boolean>>(part: T, disable = true): T => ({
   ...part,
   disabled: disable,
 });
-const getName = (key: string, reg = /([A-Z]?[a-z]+?)e?s?$/): string => {
+const getName = (
+  key: string,
+  reg = /([A-Z]?[a-z]+?)(e?s?|Record)$/
+): string => {
   const regResult = reg.exec(key);
   if (!regResult)
     throw new Error("Failure when parsing key to partName " + key);
@@ -150,68 +153,82 @@ const tree = (
 
     if (!validsArr?.length) return;
 
-		const partsArr = validsArr.map(valids=>idsToParts(valids));
+    const partsArr = validsArr.map((valids) => idsToParts(valids));
 
-		// merge common child parts entries accross multiple parts
-		const ignorePartsArr = ignorePartsRoot.reduce((arr,ign)=>{
-			const ignValidsArr = getValids(ign);
-			if(!ignValidsArr?.length) throw new MismatchError(ign.name, partAbove.name );
-			const parts = ignValidsArr.map(ignArr=>idsToParts(ignArr));
-			parts.forEach(([name,p])=>{
-				const existingArr = arr.find(([existing])=>existing===name);
-				if(!existingArr) arr.push([name,p]);
-				else existingArr.push(p);
-			})
-			return arr;
-		},[] as [string, Part[]][])
+    // merge common child parts entries accross multiple parts
+    const ignorePartsArr = ignorePartsRoot.reduce((arr, ign) => {
+      const ignValidsArr = getValids(ign);
+      if (!ignValidsArr?.length)
+        throw new MismatchError(ign.name, partAbove.name);
+      const parts = ignValidsArr.map((ignArr) => idsToParts(ignArr));
+      parts.forEach(([name, p]) => {
+        const existingArr = arr.find(([existing]) => existing === name);
+        if (!existingArr) arr.push([name, p]);
+        else existingArr.push(p);
+      });
+      return arr;
+    }, [] as [string, Part[]][]);
 
-		partsArr.forEach(([name,parts]) => {
-			const ignorePartsEnt = ignorePartsArr.find(([ignPartName])=>name===ignPartName);
-			if(!ignorePartsEnt?.length) throw new MismatchError(name, ...ignorePartsArr.map(([n])=>n));
-			const ignoreParts = ignorePartsEnt[1];
-			parts.forEach(part=>{
-				const shouldIgnore = ignoreParts.find(({id})=>part.id===id);
-				if(!shouldIgnore){
-				console.log("Disable part Below()" + part.name);
-				part.disabled=true;
-					mapBelow(part, ignoreParts)
-				}
-			})
-		});
+    partsArr.forEach(([name, parts]) => {
+      const ignorePartsEnt = ignorePartsArr.find(
+        ([ignPartName]) => name === ignPartName
+      );
+      const ignoreParts = ignorePartsEnt?.[1] || [];
+      // console.log({ignoreParts});
+
+      parts.forEach((part) => {
+        const shouldIgnore = ignoreParts.find(({ id }) => part.id === id);
+        if (!shouldIgnore) {
+          console.log("Disable part Below() " + part.name);
+          part.disabled = true;
+          mapBelow(part, ignoreParts);
+        }
+      });
+    });
   }
   function mapAbove(active: [string, Part], layer: Part<false>[]) {
+    const isLayerOfActive = getNameReg(active[0]).test(layer[0].__typename);
     const foundPart = findById(layer, active[1].id);
     if (foundPart) {
-			console.log({foundPart:foundPart.name});
+      // const ignoreArray = foundPart ? [foundPart] : [];
+      // console.log({foundPart:foundPart.name});
       layer.forEach((part) => {
         mapBelow(part, [foundPart]);
       });
-      return true;
+      if (foundPart) return true;
     }
+    // if(/gearbox/i.test(layer[0].__typename)) console.log({active:active[0], layer:layer[0].__typename, isLayerOfActive});
+
     let isLayerValid = false;
     layer.forEach((part) => {
+			console.log(part.name);
+			
       let isValid = !part.disabled;
       const validsArr = getValids(part);
       if (!validsArr?.length) {
         isValid = false;
       }
-      if (isValid && validsArr) {
+      if (isValid && validsArr && !isLayerOfActive) {
         const linkedParts = validsArr.map((valids) => idsToParts(valids));
         isValid = linkedParts.some((entry) => mapAbove(active, entry[1]));
-        console.log(part.name, { isValid });
+        // console.log(part.name, { isValid });
       }
       if (!isValid) {
-        // layer[i] = setDisable(p);
-				part.disabled=true;
-				console.log("Disable part Above() " + part.name);
-				
+        if (!isLayerOfActive) {
+          part.disabled = true;
+          console.log("Disable part Above() " + part.name);
+        }
       } else isLayerValid = true;
     });
     return isLayerValid;
   }
 
   allActivesEntries.forEach((active) => {
-    if (active[1]) mapAbove(active as [string, Part], root);
+    if (active[1]) {
+			console.log(`----${active[0]}----`);
+			
+      mapAbove(active as [string, Part], root);
+    }
   });
 
   return Object.fromEntries(allPartsEntries) as PartsQuery;
