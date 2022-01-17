@@ -91,7 +91,7 @@ const tree = (
   const root = allPartsEntries.find(([name]) => rootReg.test(name))?.[1];
   if (!root) throw new Error("Couldn't find root " + rootName);
 
-  const belowMap = new Map<string,boolean>();
+  const belowMap = new Map<string, boolean>();
 
   // #region Tree Utils
 
@@ -117,13 +117,13 @@ const tree = (
     return getValidsArr(part)?.flatMap((valids) => validsToParts(valids)[1]);
   }
   const resetBelowMap = () => {
-		let part:Part|undefined = root[0];
-		while(part){
-			belowMap.set(getName(part.__typename),true)
-			const children = getChildren(part);
-			part=children?.[0];
-		}
-	}
+    let part: Part | undefined = root[0];
+    while (part) {
+      belowMap.set(getName(part.__typename), true);
+      const children = getChildren(part);
+      part = children?.[0];
+    }
+  };
 
   function checkIsLinked(partAbove: Part, partBelow: Part) {
     let children = getChildren(partAbove);
@@ -183,7 +183,7 @@ const tree = (
   }
   // #endregion
 
-	resetBelowMap();
+  resetBelowMap();
   // #region mapping loop
   allActivesEntries.forEach((active) => {
     if (active[1]) {
@@ -200,6 +200,7 @@ function getRoot(): "model" {
   return "model";
 }
 // #endregion
+  // #endregion
 
 const carSlice = createSlice({
   name: "car",
