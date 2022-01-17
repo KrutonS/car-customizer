@@ -137,7 +137,7 @@ export interface Color extends Omit<CommonProps<'ColorRecord'>,'price'> {
   color: { hex: string };
 }
 export interface PartsQuery {
-	[k: string]:Part<boolean>[];
+	[k: string]:Part<false>[];
   allCarModels: Model[];
   allGearboxes: Gearbox[];
   allEngines: Engine[];
