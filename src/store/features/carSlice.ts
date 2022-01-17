@@ -78,10 +78,11 @@ const getName = (
   return regResult[1];
 };
 const getNameReg = (key: string) => new RegExp(getName(key), "i");
-const getValids = <T extends Part<boolean>>(parts: T) => {
+const getValids = <T extends boolean>(parts: Part<T>) => {
+  // extends Part<boolean>
   const valids = Object.entries(parts).filter(([name]) =>
     /^valid/i.test(name)
-  ) as [string, T extends Part<true> ? Part<true>[] : ObjectWithId[]][];
+  ) as [string, T extends true ? Part<true>[] : ObjectWithId[]][];
   if (!valids.length) return null;
   return valids;
 };
@@ -97,7 +98,7 @@ const tree = (
     Part | undefined
   ][];
 
-  const idsToParts = (
+  const validsToParts = (
     valids: [string, ObjectWithId[]]
   ): [string, Part<false>[]] => {
     const nameReg = getNameReg(valids[0]);
@@ -153,14 +154,14 @@ const tree = (
 
     if (!validsArr?.length) return;
 
-    const partsArr = validsArr.map((valids) => idsToParts(valids));
+    const partsArr = validsArr.map((valids) => validsToParts(valids));
 
     // merge common child parts entries accross multiple parts
     const ignorePartsArr = ignorePartsRoot.reduce((arr, ign) => {
       const ignValidsArr = getValids(ign);
       if (!ignValidsArr?.length)
         throw new MismatchError(ign.name, partAbove.name);
-      const parts = ignValidsArr.map((ignArr) => idsToParts(ignArr));
+      const parts = ignValidsArr.map((ignArr) => validsToParts(ignArr));
       parts.forEach(([name, p]) => {
         const existingArr = arr.find(([existing]) => existing === name);
         if (!existingArr) arr.push([name, p]);
@@ -174,7 +175,6 @@ const tree = (
         ([ignPartName]) => name === ignPartName
       );
       const ignoreParts = ignorePartsEnt?.[1] || [];
-      // console.log({ignoreParts});
 
       parts.forEach((part) => {
         const shouldIgnore = ignoreParts.find(({ id }) => part.id === id);
@@ -186,47 +186,32 @@ const tree = (
       });
     });
   }
-  function mapAbove(active: [string, Part], layer: Part<false>[]) {
-    const isLayerOfActive = getNameReg(active[0]).test(layer[0].__typename);
-    const foundPart = findById(layer, active[1].id);
-    if (foundPart) {
-      // const ignoreArray = foundPart ? [foundPart] : [];
-      // console.log({foundPart:foundPart.name});
-      layer.forEach((part) => {
-        mapBelow(part, [foundPart]);
-      });
-      if (foundPart) return true;
-    }
-    // if(/gearbox/i.test(layer[0].__typename)) console.log({active:active[0], layer:layer[0].__typename, isLayerOfActive});
+  function mapAbove(active: [string, Part], layer: Part<false>[]): boolean {
+    const partNameReg = getNameReg(layer[0].__typename);
 
-    let isLayerValid = false;
-    layer.forEach((part) => {
-			console.log(part.name);
-			
-      let isValid = !part.disabled;
-      const validsArr = getValids(part);
-      if (!validsArr?.length) {
-        isValid = false;
-      }
-      if (isValid && validsArr && !isLayerOfActive) {
-        const linkedParts = validsArr.map((valids) => idsToParts(valids));
-        isValid = linkedParts.some((entry) => mapAbove(active, entry[1]));
-        // console.log(part.name, { isValid });
-      }
-      if (!isValid) {
-        if (!isLayerOfActive) {
-          part.disabled = true;
-          console.log("Disable part Above() " + part.name);
-        }
-      } else isLayerValid = true;
+    if (findById(layer, active[1].id)) return true;
+    if (partNameReg.test(active[0])) return false;
+    let hasActiveChild = false;
+    layer.forEach((mappingPart) => {
+      const validsArr = getValids(mappingPart);
+      if (!validsArr) throw new MismatchError(mappingPart.name, "undefined");
+
+      const isValid = validsArr
+        .map((valids) => {
+          const layerBelow = validsToParts(valids);
+          return mapAbove(active, layerBelow[1]);
+        })
+        .some((res) => res);
+      if (!isValid) mappingPart.disabled = true;
+      else hasActiveChild = true;
     });
-    return isLayerValid;
+    return hasActiveChild;
   }
 
   allActivesEntries.forEach((active) => {
     if (active[1]) {
-			console.log(`----${active[0]}----`);
-			
+      console.log(`----${active[0]}----`);
+
       mapAbove(active as [string, Part], root);
     }
   });
