@@ -78,7 +78,7 @@ const getName = (
   return regResult[1];
 };
 const getNameReg = (key: string) => new RegExp(getName(key), "i");
-const getValids = <T extends boolean>(parts: Part<T>) => {
+const getValidsArr = <T extends boolean>(parts: Part<T>) => {
   // extends Part<boolean>
   const valids = Object.entries(parts).filter(([name]) =>
     /^valid/i.test(name)
@@ -148,44 +148,16 @@ const tree = (
   const rootReg = new RegExp(rootName, "i");
   const root = allPartsEntries.find(([name]) => rootReg.test(name))?.[1];
   if (!root) throw new Error("Couldn't find root " + rootName);
+	function getChildren(part:Part){
+		return getValidsArr(part)?.flatMap(valids=>validsToParts(valids)[1]);
+	}
+	// function checkIsLinked(partAbove:Part, partBelow:Part){
+	// 	let children = getChildren(partAbove);
+	// 	while(children){
+	// 		const has
+	// 	}
 
-  function mapBelow(partAbove: Part, ignorePartsRoot: Part[]) {
-    const validsArr = getValids(partAbove);
-
-    if (!validsArr?.length) return;
-
-    const partsArr = validsArr.map((valids) => validsToParts(valids));
-
-    // merge common child parts entries accross multiple parts
-    const ignorePartsArr = ignorePartsRoot.reduce((arr, ign) => {
-      const ignValidsArr = getValids(ign);
-      if (!ignValidsArr?.length)
-        throw new MismatchError(ign.name, partAbove.name);
-      const parts = ignValidsArr.map((ignArr) => validsToParts(ignArr));
-      parts.forEach(([name, p]) => {
-        const existingArr = arr.find(([existing]) => existing === name);
-        if (!existingArr) arr.push([name, p]);
-        else existingArr.push(p);
-      });
-      return arr;
-    }, [] as [string, Part[]][]);
-
-    partsArr.forEach(([name, parts]) => {
-      const ignorePartsEnt = ignorePartsArr.find(
-        ([ignPartName]) => name === ignPartName
-      );
-      const ignoreParts = ignorePartsEnt?.[1] || [];
-
-      parts.forEach((part) => {
-        const shouldIgnore = ignoreParts.find(({ id }) => part.id === id);
-        if (!shouldIgnore) {
-          console.log("Disable part Below() " + part.name);
-          part.disabled = true;
-          mapBelow(part, ignoreParts);
-        }
-      });
-    });
-  }
+	// }
   function mapAbove(active: [string, Part], layer: Part<false>[]): boolean {
     const partNameReg = getNameReg(layer[0].__typename);
 
@@ -193,15 +165,15 @@ const tree = (
     if (partNameReg.test(active[0])) return false;
     let hasActiveChild = false;
     layer.forEach((mappingPart) => {
-      const validsArr = getValids(mappingPart);
-      if (!validsArr) throw new MismatchError(mappingPart.name, "undefined");
+      const children = getChildren(mappingPart);
+      if (!children) throw new MismatchError(mappingPart.name, "undefined");
 
-      const isValid = validsArr
-        .map((valids) => {
-          const layerBelow = validsToParts(valids);
-          return mapAbove(active, layerBelow[1]);
-        })
-        .some((res) => res);
+      const isValid = mapAbove(active, children)
+        // .map((child) => {
+        //   // const layerBelow = validsToParts(valids);
+        //   return mapAbove(active, child);
+        // })
+        // .some((res) => res);
       if (!isValid) mappingPart.disabled = true;
       else hasActiveChild = true;
     });
