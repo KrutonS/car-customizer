@@ -60,7 +60,7 @@ const getName = (
   const regResult = reg.exec(key);
   if (!regResult)
     throw new Error("Failure when parsing key to partName " + key);
-  return regResult[1];
+  return regResult[1].toLowerCase();
 };
 const getNameReg = (key: string) => new RegExp(getName(key), "i");
 const getValidsArr = <T extends boolean>(parts: Part<T>) => {
@@ -92,11 +92,9 @@ const tree = (
   const root = allPartsEntries.find(([name]) => rootReg.test(name))?.[1];
   if (!root) throw new Error("Couldn't find root " + rootName);
 
-  const belowMap = new Map(allActivesEntries.map(([name]) => [name, true]));
+  const belowMap = new Map<string,boolean>();
 
   // #region Tree Utils
-  const resetBelowMap = () =>
-    allActivesEntries.forEach(([n]) => belowMap.set(n, true));
 
   const validsToParts = (
     valids: [string, ObjectWithId[]]
@@ -119,6 +117,14 @@ const tree = (
   function getChildren(part: Part) {
     return getValidsArr(part)?.flatMap((valids) => validsToParts(valids)[1]);
   }
+  const resetBelowMap = () => {
+		let part:Part|undefined = root[0];
+		while(part){
+			belowMap.set(getName(part.__typename),true)
+			const children = getChildren(part);
+			part=children?.[0];
+		}
+	}
 
   function checkIsLinked(partAbove: Part, partBelow: Part) {
     let children = getChildren(partAbove);
@@ -178,6 +184,7 @@ const tree = (
   }
   // #endregion
 
+	resetBelowMap();
   // #region mapping loop
   allActivesEntries.forEach((active) => {
     if (active[1]) {
@@ -201,8 +208,6 @@ const carSlice = createSlice({
   reducers: {
     setParts(state, { payload }: InitPayload) {
       const { dato, paramsIds } = payload;
-      // const { allCarModels, allEngines, allGearboxes, allColors } = dato;
-      // const partsArr = [allCarModels, allEngines, allGearboxes, allColors];
       const partsEntries = Object.entries(dato);
       const paramEntries = Object.entries(paramsIds);
       const { model, engine, gearbox, color } = paramEntries.reduce(
