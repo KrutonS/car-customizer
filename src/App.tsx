@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
 import useDato, { PartsQuery, primaryQuery } from "./lib/datocms";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { ParamsId, setParts } from "./store/features/carSlice";
+import { ParamsIds, setParts } from "./store/features/carSlice";
 import Customizator from "./components/customizator";
 import Content from "./components/content";
 import Summary from "./components/summary";
@@ -18,12 +18,12 @@ function App() {
   const { isLoading } = useAppSelector(({ car }) => car);
   const [searchParams] = useSearchParams();
 
-  const partsIds: ParamsId = [
-    searchParams.get("model"),
-    searchParams.get("engine"),
-    searchParams.get("gearbox"),
-    searchParams.get("color"),
-  ];
+  const partsIds: ParamsIds = {
+    model:searchParams.get("model"),
+    engine:searchParams.get("engine"),
+    gearbox:searchParams.get("gearbox"),
+    color:searchParams.get("color"),
+};
 
   useEffect(() => {
     data && dispatch(setParts({ dato: data, paramsIds: partsIds }));

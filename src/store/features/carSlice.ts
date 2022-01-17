@@ -8,6 +8,7 @@ import {
   PartsQuery,
 } from "../../lib/datocms";
 import { findById, ObjectWithId } from "../../utils/array";
+import { MismatchError } from "../../utils/errors";
 
 interface State {
   parts: PartsQuery;
@@ -25,18 +26,12 @@ const initialState: State = {
 
 // #region Types
 
-export type ParamsId = [
-  string | null,
-  string | null,
-  string | null,
-  string | null
-];
+export type ParamsIds = { [k: string]: string | null };
 type PickProp<P extends keyof State> = Required<State>[P];
 type InitPayload = PayloadAction<{
   dato: PickProp<"parts">;
-  paramsIds: ParamsId;
+  paramsIds: ParamsIds;
 }>;
-type PartsLayersTuple = [Model[], Engine[], Gearbox[]];
 //#endregion
 
 // #region Local Util Functions
@@ -53,101 +48,159 @@ function updatePrice(
   return newPrice;
 }
 
+const setDisable = <T extends Part<boolean>>(part: T, disable = true): T => ({
 
-const startingDepth = 2;
-
-const isPartValid = (validArray: ObjectWithId[], part: Part): boolean => {
-  if (part.disabled) return false;
-  const foundItem = findById<ObjectWithId | Part>(validArray, part.id);
-  return Boolean(foundItem);
-};
-const setDisable = (part: Part, disable = true): Part => ({
   ...part,
   disabled: disable,
 });
+const getName = (
+  key: string,
+  reg = /([A-Z]?[a-z]+?)(e?s?|Record)$/
+): string => {
+  const regResult = reg.exec(key);
+  if (!regResult)
+    throw new Error("Failure when parsing key to partName " + key);
+  return regResult[1].toLowerCase();
+};
+const getNameReg = (key: string) => new RegExp(getName(key), "i");
+const getValidsArr = <T extends boolean>(parts: Part<T>) => {
+  const valids = Object.entries(parts).filter(([name]) =>
+    /^valid/i.test(name)
+  ) as [string, T extends true ? Part<true>[] : ObjectWithId[]][];
+  if (!valids.length) return null;
+  return valids;
+};
 
 const tree = (
-  partsArr: PartsLayersTuple,
-  active: [Model | undefined, Engine | undefined, Gearbox | undefined],
-  depth = startingDepth
-): PartsLayersTuple => {
-  //#region Utils
-  const validOfItem = (item: Part | null): ObjectWithId[] | undefined => {
-    switch (item?.__typename) {
-      case "CarModelRecord":
-        return item.validEngines;
-      case "EngineRecord":
-        return item.validGearboxes;
-      default:
-        return undefined;
-    }
-  };
-  const getFlatValids = (parts: Part[]): ObjectWithId[] => {
-    return parts.reduce((valids, part) => {
-      let partValids: ObjectWithId[] | undefined;
-      if (!part.disabled) partValids = validOfItem(part);
+  allParts: PartsQuery,
+  allActives: Pick<State, "model" | "engine" | "gearbox" | "color">,
+  rootName: "model" | "engine" | "gearbox" | "color"
+) => {
+  let allPartsEntries = Object.entries({ ...allParts });
+  const allActivesEntries = Object.entries(allActives) as [
+    string,
+    Part | undefined
+  ][];
 
-      return [...valids, ...(partValids || [])];
-    }, [] as ObjectWithId[]);
-  };
-  function mapDown<T extends Part[][]>(checkItem: Part, localParts: T) {
-    let valids = validOfItem(checkItem) as ObjectWithId[];
+  // Reset all disables
+  allPartsEntries = allPartsEntries.map(([name, parts]) => [
+    name,
+    parts.map((p) => setDisable(p, false)),
+  ]);
 
-    for (let i = 1; i < localParts.length; i++) {
-      const partsBelow = localParts[i];
-      // mapParts(currentParts, valids);
-      partsBelow.forEach((part, j) => {
-        const { disabled } = part;
-        const isValid = !disabled && isPartValid(valids, part);
-        if (!isValid) part = setDisable(part);
-        partsBelow[j] = part;
-      });
-      valids = getFlatValids(partsBelow);
-    }
+  const rootReg = new RegExp(rootName, "i");
+  const root = allPartsEntries.find(([name]) => rootReg.test(name))?.[1];
+  if (!root) throw new Error("Couldn't find root " + rootName);
+
+  const belowMap = new Map<string,boolean>();
+
+  // #region Tree Utils
+
+  const validsToParts = (
+    valids: [string, ObjectWithId[]]
+  ): [string, Part<false>[]] => {
+    const nameReg = getNameReg(valids[0]);
+    const partsEntry = allPartsEntries.find(([name]) => nameReg.test(name));
+    if (!partsEntry) throw new Error("Couldn't find parts");
+    const parts = valids[1].map(({ id }) => {
+      const part = findById(partsEntry[1], id);
+      if (part === undefined)
+        throw new Error(
+          `Couldn't find part with id ${id} of ${valids[0]} in ${partsEntry[0]}`
+        );
+
+      return part;
+    });
+    return [partsEntry[0], parts];
+  };
+
+  function getChildren(part: Part) {
+    return getValidsArr(part)?.flatMap((valids) => validsToParts(valids)[1]);
   }
-  const mapUp: typeof mapDown = (checkItem, localParts) => {
-    const { length } = localParts;
+  const resetBelowMap = () => {
+		let part:Part|undefined = root[0];
+		while(part){
+			belowMap.set(getName(part.__typename),true)
+			const children = getChildren(part);
+			part=children?.[0];
+		}
+	}
 
-    let checkItems = [checkItem];
-
-    for (let i = length - 2; i >= 0; i--) {
-      const partsAbove = localParts[i];
-      partsAbove.forEach((part, j) => {
-        const valids = validOfItem(part);
-        if (valids === undefined) return part;
-        const isValid = checkItems.some((item) => {
-          return isPartValid(valids, item);
-        });
-        if (!isValid) part = setDisable(part);
-        partsAbove[j] = part;
-      });
-      checkItems = partsAbove;
+  function checkIsLinked(partAbove: Part, partBelow: Part) {
+    let children = getChildren(partAbove);
+    while (children) {
+      const sliceWithActive = getNameReg(children[0].__typename).test(
+        partBelow.__typename
+      );
+      const hasItem = sliceWithActive && findById(children, partBelow.id);
+      if (hasItem) return true;
+      const next = children.flatMap((ch) => getChildren(ch));
+      if (next.includes(undefined)) children = undefined;
+      else children = next as Part[];
     }
-  };
-  //#endregion
+    return false;
+  }
 
-  const clearDisables = depth === startingDepth;
+  function mapAbove(active: [string, Part], layer: Part<false>[]): boolean {
+    const sliceName = getName(layer[0].__typename).toLowerCase();
+    const partNameReg = new RegExp(sliceName, "i");
 
-  if (clearDisables)
-    partsArr = partsArr.map((parts) =>
-      parts.map((part) => setDisable(part, false))
-    ) as PartsLayersTuple;
+    // Exclude parts slices from being mapped by mapBelow()
+    belowMap.delete(sliceName);
 
-  const activePart = active[depth];
-  if (activePart !== undefined)
-    partsArr.forEach((parts, _dep) => {
-      if (_dep === depth) return parts;
+    // return true if layer contains active
+    if (findById(layer, active[1].id)) return true;
 
-      if (_dep - depth > 0) {
-        mapDown(activePart, partsArr.slice(depth, _dep + 1));
-      } else {
-        mapUp(activePart, partsArr.slice(_dep, depth + 1));
+
+    // if parts have same type as active, i.e level, return false
+    if (partNameReg.test(active[0])) return false;
+
+    let hasActiveChild = false;
+    layer.forEach((mappingPart) => {
+      const children = getChildren(mappingPart);
+      if (!children) throw new MismatchError(mappingPart.name, "undefined");
+
+      const isValid = mapAbove(active, children);
+      if (!isValid) mappingPart.disabled = true;
+      else hasActiveChild = true;
+    });
+    return hasActiveChild;
+  }
+
+  function mapBelow(active: Part) {
+    belowMap.forEach((shouldMap, name) => {
+      if (shouldMap) {
+        const nameReg = new RegExp(name, "i");
+        const mapEntries = allPartsEntries.find(([key]) =>
+          nameReg.test(key)
+        )?.[1];
+        if (!mapEntries)
+          throw new Error("Couldn't find entries of name " + name);
+        mapEntries.forEach((p) => {
+          const isLinked = checkIsLinked(active, p);
+          if (!isLinked) p.disabled = true;
+        });
       }
     });
+  }
+  // #endregion
 
-  if (depth === 0) return partsArr;
-  return tree(partsArr, active, depth - 1);
+	resetBelowMap();
+  // #region mapping loop
+  allActivesEntries.forEach((active) => {
+    if (active[1]) {
+      mapAbove(active as [string, Part], root);
+      mapBelow(active[1]);
+      resetBelowMap();
+    }
+  });
+
+  return Object.fromEntries(allPartsEntries) as PartsQuery;
 };
+
+function getRoot(): "model" {
+  return "model";
+}
 // #endregion
 
 const carSlice = createSlice({
@@ -156,25 +209,29 @@ const carSlice = createSlice({
   reducers: {
     setParts(state, { payload }: InitPayload) {
       const { dato, paramsIds } = payload;
-      let { allCarModels, allEngines, allGearboxes } = dato;
-      const { allColors } = dato;
-      const partsArr = [allCarModels, allEngines, allGearboxes, allColors];
-      const [model, engine, gearbox, color] = paramsIds.map((id, i) =>
-        id
-          ? findById<Model | Engine | Gearbox | Color>(partsArr[i], id)
-          : undefined
-      ) as [
-        Model | undefined,
-        Engine | undefined,
-        Gearbox | undefined,
-        Color | undefined
-      ];
+      const partsEntries = Object.entries(dato);
+      const paramEntries = Object.entries(paramsIds);
+      const { model, engine, gearbox, color } = paramEntries.reduce(
+        (paramsObj, [partName, id]) => {
+          if (id !== null) {
+            const nameReg = new RegExp(partName, "i");
+            const lookupParts = partsEntries.find(([n]) => nameReg.test(n));
+            if (!lookupParts)
+              throw new Error("Failed finding part slice for " + partName);
+            const foundItem = findById(lookupParts[1], id);
+            if (!foundItem)
+              throw new Error(
+                "failed finding part of id " + id + " in " + lookupParts[0]
+              );
+            return { ...paramsObj, [partName]: foundItem };
+          }
+          return paramsObj;
+        },
+        {} as { [k: string]: Part }
+      ) as Pick<State, "model" | "engine" | "gearbox" | "color">;
 
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, engine, gearbox]
-      );
-      const parts = { allCarModels, allEngines, allGearboxes, allColors };
+      const root = getRoot();
+      const parts = tree(dato, { model, engine, gearbox, color }, root);
       const price = updatePrice({ model, engine, gearbox });
       return {
         ...state,
@@ -188,51 +245,44 @@ const carSlice = createSlice({
       };
     },
     setModel(state, { payload }: PayloadAction<Model | undefined>) {
-      const { engine, gearbox, parts } = state;
-      let { allEngines, allGearboxes, allCarModels } = parts;
       state.model = payload;
 
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [payload, engine, gearbox]
+      const { engine, gearbox, color, parts } = state;
+      const root = getRoot();
+      const newParts = tree(
+        parts,
+        { model: payload, engine, gearbox, color },
+        root
       );
-      parts.allCarModels = allCarModels;
-      parts.allEngines = allEngines;
-      parts.allGearboxes = allGearboxes;
+
+      state.parts = newParts;
       state.price = updatePrice(state);
       return state;
     },
     setEngine(state, { payload }: PayloadAction<Engine | undefined>) {
-      const { parts, model, gearbox } = state;
-      let { allCarModels, allEngines, allGearboxes } = parts;
       state.engine = payload;
-
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, payload, gearbox]
+      const { parts, model, gearbox, color } = state;
+      const root = getRoot();
+      const newParts = tree(
+        parts,
+        { model, engine: payload, gearbox, color },
+        root
       );
-
-      parts.allCarModels = allCarModels;
-      parts.allEngines = allEngines;
-      parts.allGearboxes = allGearboxes;
-
+      state.parts = newParts;
       state.price = updatePrice(state);
       return state;
     },
     setGearbox(state, { payload }: PayloadAction<Gearbox | undefined>) {
-      const { engine, model, parts } = state;
-      let { allCarModels, allEngines, allGearboxes } = parts;
       state.gearbox = payload;
-
-      [allCarModels, allEngines, allGearboxes] = tree(
-        [allCarModels, allEngines, allGearboxes],
-        [model, engine, payload]
+      const { engine, model, color, parts } = state;
+      const root = getRoot();
+      const newParts = tree(
+        parts,
+        { model, engine, gearbox: payload, color },
+        root
       );
 
-      parts.allCarModels = allCarModels;
-      parts.allEngines = allEngines;
-      parts.allGearboxes = allGearboxes;
-
+      state.parts = newParts;
       state.price = updatePrice(state);
       return state;
     },
