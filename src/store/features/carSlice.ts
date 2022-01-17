@@ -49,6 +49,7 @@ function updatePrice(
 }
 
 const setDisable = <T extends Part<boolean>>(part: T, disable = true): T => ({
+
   ...part,
   disabled: disable,
 });
@@ -149,6 +150,7 @@ const tree = (
 
     // return true if layer contains active
     if (findById(layer, active[1].id)) return true;
+
 
     // if parts have same type as active, i.e level, return false
     if (partNameReg.test(active[0])) return false;
