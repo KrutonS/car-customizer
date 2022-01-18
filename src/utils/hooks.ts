@@ -1,28 +1,30 @@
 import { Color } from "three";
 import { useEffect, useRef, useState } from "react";
 
-export function useLerp(from: Color, to: Color, duration = 1, ms = 1000 / 60) {
-  const [trans, setTrans] = useState(from);
-  const start = useRef(Date.now());
+export function useLerp(initial: Color, to: Color, duration = 1) {
+  const [trans, setTrans] = useState(initial);
+  const start = useRef(0);
+  const requestRef = useRef<number>();
+	const fromRef = useRef(initial);
 
   useEffect(() => {
     start.current = Date.now();
-    function onTimeout() {
+		fromRef.current = trans;
+		
+    function animate() {
+
       const progress = (Date.now() - start.current) / duration / 1000;
-      const color = trans.lerp(to, progress);
+			const fromCopy = fromRef.current.clone();
+      const color = fromCopy.lerp(to, progress);
+			
       setTrans(color);
+      if (progress < 1) requestAnimationFrame(animate);
     }
     if (!trans.equals(to)) {
-      const interval = setInterval(onTimeout, ms);
-      const clearInter = () => clearInterval(interval);
-      const timeout = setTimeout(clearInter, duration * 1000);
-
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
+      requestRef.current = requestAnimationFrame(animate);
+			return ()=>cancelAnimationFrame(requestRef.current as number);
     }
-  }, [to]);
+  }, [to.getHex()]);
 
   return trans;
 }
