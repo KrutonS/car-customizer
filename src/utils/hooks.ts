@@ -1,7 +1,7 @@
 import { Color } from "three";
 import { useEffect, useRef, useState } from "react";
 
-export function useLerp(initial: Color, to: Color, duration = 1) {
+export function useLerp(initial: Color, to: Color, duration = .2) {
   const [trans, setTrans] = useState(initial);
   const start = useRef(0);
   const requestRef = useRef<number>();
