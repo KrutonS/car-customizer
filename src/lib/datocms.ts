@@ -122,22 +122,23 @@ export type ValidKeys = ["validEngines", "validGearboxes"];
 
 export type Model<ValidValue = ObjectWithId[]> = CommonProps<
   "CarModelRecord",
-  ValidKeys[0],
+  string,
   ValidValue
 >;
 export type Engine<ValidValue = ObjectWithId[]> = CommonProps<
   "EngineRecord",
-  ValidKeys[1],
+  string,
   ValidValue
 >;
-export type Gearbox = CommonProps<"GearboxRecord">;
-export interface Color extends Omit<CommonProps<'ColorRecord'>,'price'> {
+export type Gearbox = CommonProps<"GearboxRecord", string>;
+export interface Color extends Omit<CommonProps<"ColorRecord">, "price"> {
   // id: string;
   // name: string;
+  [k: string]: any;
   color: { hex: string };
 }
 export interface PartsQuery {
-	[k: string]:Part<false>[];
+  [k: string]: Part<false>[];
   allCarModels: Model[];
   allGearboxes: Gearbox[];
   allEngines: Engine[];
@@ -146,7 +147,8 @@ export interface PartsQuery {
 export type Part<IsTree extends boolean = false> =
   | Model<IsTree extends true ? Engine : ObjectWithId[]>
   | Engine<IsTree extends true ? Gearbox : ObjectWithId[]>
-  | Gearbox | Color;
+  | Gearbox
+  | Color;
 
 type PartExtends<P extends keyof PartsQuery, T> = P extends never
   ? never

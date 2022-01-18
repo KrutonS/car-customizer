@@ -55,7 +55,9 @@ button {
   $stroke: var.$line-stroke;
   $mask: var.$primary;
   $skew: var.$skew;
-  @include var.before-after;
+  @include var.before-after{
+		pointer-events: none;
+	}
 
   padding: 5px 20px;
   border: $stroke solid $bg;

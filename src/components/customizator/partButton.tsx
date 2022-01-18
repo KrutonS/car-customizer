@@ -26,7 +26,7 @@ const PartButton: FC<Props> = ({
 }) => {
   let hex: string | null = null;
   if ("color" in part) {
-    hex = part.color.hex;
+    hex = (part as Color).color.hex;
   }
   const { name } = part;
 
