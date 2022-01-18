@@ -7,8 +7,7 @@ import {
   Part,
   PartsQuery,
 } from "../../lib/datocms";
-import { findById, ObjectWithId } from "../../utils/array";
-import { MismatchError } from "../../utils/errors";
+import { findById } from "../../utils/array";
 import { tree } from "../../utils/tree";
 
 interface State {

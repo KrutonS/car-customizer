@@ -1,13 +1,15 @@
 import { findById, ObjectWithId } from "./array";
-import { MismatchError } from "./errors";
 
+// #region Types
 type MinimalPart = {
   __typename: string;
   id: string;
   name: string;
   disabled?: boolean;
 } & { [k: string]: ObjectWithId[] };
+// #endregion
 
+// #region Local Utils
 const setDisable = <T extends MinimalPart>(part: T, disable = true): T => ({
   ...part,
   disabled: disable,
@@ -25,48 +27,72 @@ const getNameReg = (key: string) => new RegExp(getName(key), "i");
 const getValidsArr = <T extends MinimalPart>(parts: T) => {
   const valids = Object.entries(parts).filter(([name]) =>
     /^valid/i.test(name)
-  )  as [string, ObjectWithId[]][];
+  ) as [string, ObjectWithId[]][];
   if (!valids.length) return null;
   return valids;
 };
 
-const validsToParts = <T extends MinimalPart>(allEntries:[string,T[]][],valids: [string, ObjectWithId[]]): [string, T[]] => {
-	const nameReg = getNameReg(valids[0]);
-	const partsEntry = allEntries.find(([name]) => nameReg.test(name));
-	if (!partsEntry) throw new Error("Couldn't find parts");
-	const parts = valids[1].map(({ id }) => {
-		const part = findById(partsEntry[1], id);
-		if (part === undefined)
-			throw new Error(
-				`Couldn't find part with id ${id} of ${valids[0]} in ${partsEntry[0]}`
-			);
+const validsToParts = <T extends MinimalPart>(
+  allEntries: [string, T[]][],
+  valids: [string, ObjectWithId[]]
+): [string, T[]] => {
+  const nameReg = getNameReg(valids[0]);
+  const partsEntry = allEntries.find(([name]) => nameReg.test(name));
+  if (!partsEntry) throw new Error("Couldn't find parts");
+  const parts = valids[1].map(({ id }) => {
+    const part = findById(partsEntry[1], id);
+    if (part === undefined)
+      throw new Error(
+        `Couldn't find part with id ${id} of ${valids[0]} in ${partsEntry[0]}`
+      );
 
-		return part;
-	});
-	return [partsEntry[0], parts];
+    return part;
+  });
+  return [partsEntry[0], parts];
 };
-function getChildren<T extends MinimalPart>(part: T, allEntries:[string, T[]][]) {
-	return getValidsArr(part)?.flatMap((valids) => validsToParts(allEntries,valids)[1]);
+function getChildren<T extends MinimalPart>(
+  part: T,
+  allEntries: [string, T[]][]
+) {
+  return getValidsArr(part)?.flatMap(
+    (valids) => validsToParts(allEntries, valids)[1]
+  );
 }
-function checkIsLinked<T extends MinimalPart>(partAbove: T, partBelow: T, allEntries:[string,T[]][]) {
-	let children = getChildren(partAbove, allEntries);
-	while (children) {
-		const sliceWithActive = getNameReg(children[0].__typename).test(
-			partBelow.__typename
-		);
-		const hasItem = sliceWithActive && findById(children, partBelow.id);
-		if (hasItem) return true;
-		const next = children.flatMap((ch) => getChildren(ch, allEntries));
-		if (next.includes(undefined)) children = undefined;
-		else children = next as T[];
+function checkIsLinked<T extends MinimalPart>(
+  partAbove: T,
+  partBelow: T,
+  allEntries: [string, T[]][]
+) {
+  let children = getChildren(partAbove, allEntries);
+  while (children) {
+    const sliceWithActive = getNameReg(children[0].__typename).test(
+      partBelow.__typename
+    );
+    const hasItem = sliceWithActive && findById(children, partBelow.id);
+    if (hasItem) return true;
+    const next = children.flatMap((ch) => getChildren(ch, allEntries));
+    if (next.includes(undefined)) children = undefined;
+    else children = next as T[];
+  }
+  return false;
+}
+
+function resetDisables<T extends MinimalPart>(allEntries:[string, T[]][]):[string,T[]][]{
+	return allEntries.map(([name, parts]) => [
+    name,
+    parts.map((p) => setDisable(p, false)),
+  ]);
+}
+
+class NoChildrenError extends Error{
+	constructor(name:string){
+		super(`No children found for: ${name}`)
 	}
-	return false;
 }
+//#endregion
 
 
-
-
-export const tree = <T extends MinimalPart, Y extends  {[k: string]: T[]} >(
+export const tree = <T extends MinimalPart, Y extends { [k: string]: T[] }>(
   allParts: Y,
   allActives: { [k: string]: T | undefined },
   // allActives: Pick<State, "model" | "engine" | "gearbox" | "color">,
@@ -78,11 +104,7 @@ export const tree = <T extends MinimalPart, Y extends  {[k: string]: T[]} >(
     T | undefined
   ][];
 
-  // Reset all disables
-  allPartsEntries = allPartsEntries.map(([name, parts]) => [
-    name,
-    parts.map((p) => setDisable(p, false)),
-  ]);
+  allPartsEntries = resetDisables(allPartsEntries);
 
   const rootReg = new RegExp(rootName, "i");
   const root = allPartsEntries.find(([name]) => rootReg.test(name))?.[1];
@@ -91,20 +113,14 @@ export const tree = <T extends MinimalPart, Y extends  {[k: string]: T[]} >(
   const belowMap = new Map<string, boolean>();
 
   // #region Tree Utils
-
-
-
-  
   const resetBelowMap = () => {
     let part: T | undefined = root[0];
     while (part) {
       belowMap.set(getName(part.__typename), true);
-      const children:T[]|undefined = getChildren(part, allPartsEntries);
+      const children: T[] | undefined = getChildren(part, allPartsEntries);
       part = children?.[0];
     }
   };
-
-  
 
   function mapAbove(active: [string, T], layer: T[]): boolean {
     const sliceName = getName(layer[0].__typename).toLowerCase();
@@ -120,14 +136,20 @@ export const tree = <T extends MinimalPart, Y extends  {[k: string]: T[]} >(
     if (partNameReg.test(active[0])) return false;
 
     let hasActiveChild = false;
+		try{
     layer.forEach((mappingPart) => {
-      const children = getChildren(mappingPart,allPartsEntries);
-      if (!children) throw new MismatchError(mappingPart.name, "undefined");
+      const children = getChildren(mappingPart, allPartsEntries);
+      if (!children) throw new NoChildrenError(mappingPart.name);
 
       const isValid = mapAbove(active, children);
       if (!isValid) mappingPart.disabled = true;
       else hasActiveChild = true;
     });
+	} catch(e){
+		// If no children found, that would mean it went to the end of an indepentend branch. Return true
+		if(e instanceof NoChildrenError) return true;
+		else throw e;
+	}
     return hasActiveChild;
   }
 
@@ -151,13 +173,13 @@ export const tree = <T extends MinimalPart, Y extends  {[k: string]: T[]} >(
 
   resetBelowMap();
   // #region mapping loop
-  allActivesEntries.forEach((active) => {
-    if (active[1]) {
-      mapAbove(active as [string, T], root);
-      mapBelow(active[1]);
+  allActivesEntries.forEach(([name, active]) => {
+    if (active) {
+      mapAbove([name,active], root);
+      mapBelow(active);
       resetBelowMap();
     }
   });
-
+	// #endregion
   return Object.fromEntries(allPartsEntries) as Y;
 };
